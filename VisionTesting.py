@@ -205,15 +205,16 @@ while(True):
             area1, area2 = M1['m00'], M2['m00']
             boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
             boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
-            boundedImg = cv2.putText(boundedImg,'Area Pencil 1: '+str(area1)+', Area Pencil 1: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+            boundedImg = cv2.putText(boundedImg,'Area Pencil 1: '+str(area1)+', Area Pencil 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
+    # multiple image to compare effect
     cv2.imshow('frame',frame)
     cv2.imshow('frame2',shape)
     cv2.imshow('frame3',boundedImg)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-        
+
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()

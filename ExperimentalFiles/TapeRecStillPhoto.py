@@ -159,58 +159,91 @@ class GripPipeline:
 
 
 # Self written code
-img = imread('WIN_20190122_17_53_22_Pro',1)
+frame = cv2.imread('WIN_20190122_17_53_22_Pro.jpg')
+shape = cv2.imread('WIN_20190122_17_53_22_Pro.jpg')
+boundedImg = cv2.imread('WIN_20190122_17_53_22_Pro.jpg')
 eyes = GripPipeline()
 
-while(True):
+class Tape:
+    def __init__(self, cnt):
+        self.center = None
+        self.angle = None
+        self.area = None
+        self.vertices =  np.int0(cv2.boxPoints(cv2.minAreaRect(cnt)))
+        self.sortedVerticesX = []
+        self.sortedVerticesY = []
+        self.contour = cnt
+
+    def getCenter(self):
+        M = cv2.moments(self.contour)
+        self.center = (int(M['m10']/M['m00']), int(M['m01']/M['m00']))
+        return self.center
+
+    def getArea(self):
+        M = cv2.moments(self.contour)
+        self.area = M['m00']
+        return self.area
+
+    def getSortedVerticesX(self):
+        def x(list):
+            return list[1]
+        self.sortedVerticesX = list(sorted(self.vertices, key = x))
+        return self.sortedVerticesX
+
+    def getSortedVerticesX(self):
+        def Y(list):
+            return list[1]
+        self.sortedVerticesY = sorted(self.vertices, key = Y)
+        return self.sortedVerticesY
+
+    def getAngle(self):
+        self.angle = math.degrees(math.atan2(math.fabs(self.getSortedVerticesX()[0][0]-self.getSortedVerticesX()[1][0]), math.fabs(self.getSortedVerticesX()[0][1]-self.getSortedVerticesX()[1][1])))
+        return self.angle
+
+
+
     # access the generated code
-    eyes.process(img)
-
-    # This draws the contour of the tape
-    shape = cv2.drawContours(shape, eyes.filter_contours_output, -1, (255,255,255), 3)
-
+eyes.process(frame)
     # Draws the bounding rectangle, the reason for it to be in if statement is because the tape is not always detected
-    if len(eyes.filter_contours_output) > 0:
-        # Creates rectangle
-        tapeNum = 0
-        numOftape = len(eyes.filter_contours_output)
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftapes),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
-        for borders in eyes.filter_contours_output:
-            tapeNum += 1
-            cnt = borders
-            rect = cv2.minAreaRect(cnt)
-            box = cv2.boxPoints(rect)
-            box = np.int0(box)
-            boundedImg = cv2.drawContours(boundedImg,[box],0,(0,0,255),2)
+if len(eyes.filter_contours_output) > 0:
+    # Creates rectangle
+    tapeNum = 0
+    numOftape = len(eyes.filter_contours_output)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftape),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+    tapes = []
+    for borders in eyes.filter_contours_output:
+        tapeNum += 1
+        cnt = borders
+        rect = cv2.minAreaRect(cnt)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
+        boundedImg = cv2.drawContours(boundedImg,[box],0,(0,0,255),2)
+        tape = Tape(borders)
+        tape.getAngle()
 
             # Gets statistics on the rectangle
-            M = cv2.moments(cnt)
-
+        M = cv2.moments(cnt)
             # Creates the center point
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
-            boundedImg=cv2.circle(boundedImg, (cx,cy), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
-            boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(cx)+','+str(cy),(box[0][0],box[0][1]), font, 0.35,(255,255,255),1,cv2.LINE_AA)
-        # Finding the middle point only if there are 2 tapes (will be updated later)
-        if len(eyes.filter_contours_output) == 2:
-            M1 = cv2.moments(eyes.filter_contours_output[0])
-            M2 = cv2.moments(eyes.filter_contours_output[1])
-            c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
-            c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
-            centerX = int((c1x + c2x)/2)
-            centerY = int((c1y + c2y)/2)
-            area1, area2 = M1['m00'], M2['m00']
-            boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
-            boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
-            boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
-
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+        boundedImg=cv2.circle(boundedImg, (cx,cy), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
+        boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(cx)+','+str(cy)+'Angle: '+str(math.floor(tape.getAngle())),(box[0][0],box[0][1]), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+    # Finding the middle point only if there are 2 tapes (will be updated later)
+    if len(eyes.filter_contours_output) == 2:
+        M1 = cv2.moments(eyes.filter_contours_output[0])
+        M2 = cv2.moments(eyes.filter_contours_output[1])
+        c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
+        c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
+        centerX = int((c1x + c2x)/2)
+        centerY = int((c1y + c2y)/2)
+        area1, area2 = M1['m00'], M2['m00']
+        boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
+        boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
+        boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
     # multiple image to compare effect
-    cv2.imshow('frame',frame)
-    cv2.imshow('frame2',shape)
-    cv2.imshow('frame3',boundedImg)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+cv2.imshow('frame3',boundedImg)
+cv2.waitKey(0)
 
 
 # When everything done, release the capture

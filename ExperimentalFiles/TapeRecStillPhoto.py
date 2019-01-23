@@ -1,8 +1,11 @@
+"""
+This is tape detectiong using still photos
+"""
+
 import numpy as np
 import cv2
 import math
 from enum import Enum
-
 
 class GripPipeline:
     """
@@ -13,71 +16,71 @@ class GripPipeline:
         """initializes all values to presets or None if need to be set
         """
 
-        self.__hsl_threshold_hue = [0.0, 99.69696969696969]
-        self.__hsl_threshold_saturation = [188.03956834532377, 255.0]
-        self.__hsl_threshold_luminance = [29.81115107913669, 255.0]
+        self.__hsv_threshold_hue = [0.0, 180.0]
+        self.__hsv_threshold_saturation = [0.0, 130.5050505050505]
+        self.__hsv_threshold_value = [249.95503597122303, 255.0]
 
-        self.hsl_threshold_output = None
+        self.hsv_threshold_output = None
 
-        self.__find_contours_input = self.hsl_threshold_output
-        self.__find_contours_external_only = True
+        self.__find_contours_input = self.hsv_threshold_output
+        self.__find_contours_external_only = False
 
         self.find_contours_output = None
 
-        self.__convex_hulls_contours = self.find_contours_output
-
-        self.convex_hulls_output = None
-
-        self.__filter_contours_contours = self.convex_hulls_output
-        self.__filter_contours_min_area = 120.0
-        self.__filter_contours_min_perimeter = 350.0
-        self.__filter_contours_min_width = 5.0
-        self.__filter_contours_max_width = 1000.0
+        self.__filter_contours_contours = self.find_contours_output
+        self.__filter_contours_min_area = 100.0
+        self.__filter_contours_min_perimeter = 200.0
+        self.__filter_contours_min_width = 50.0
+        self.__filter_contours_max_width = 100.0
         self.__filter_contours_min_height = 0.0
-        self.__filter_contours_max_height = 1000.0
-        self.__filter_contours_solidity = [34.352517985611506, 100.0]
-        self.__filter_contours_max_vertices = 35.0
+        self.__filter_contours_max_height = 200.0
+        self.__filter_contours_solidity = [0, 100]
+        self.__filter_contours_max_vertices = 1000000.0
         self.__filter_contours_min_vertices = 0.0
         self.__filter_contours_min_ratio = 0.0
-        self.__filter_contours_max_ratio = 997.0
+        self.__filter_contours_max_ratio = 1000.0
 
         self.filter_contours_output = None
+
+        self.__convex_hulls_contours = self.filter_contours_output
+
+        self.convex_hulls_output = None
 
 
     def process(self, source0):
         """
         Runs the pipeline and sets all outputs to new values.
         """
-        # Step HSL_Threshold0:
-        self.__hsl_threshold_input = source0
-        (self.hsl_threshold_output) = self.__hsl_threshold(self.__hsl_threshold_input, self.__hsl_threshold_hue, self.__hsl_threshold_saturation, self.__hsl_threshold_luminance)
+        # Step HSV_Threshold0:
+        self.__hsv_threshold_input = source0
+        (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input, self.__hsv_threshold_hue, self.__hsv_threshold_saturation, self.__hsv_threshold_value)
 
         # Step Find_Contours0:
-        self.__find_contours_input = self.hsl_threshold_output
+        self.__find_contours_input = self.hsv_threshold_output
         (self.find_contours_output) = self.__find_contours(self.__find_contours_input, self.__find_contours_external_only)
 
-        # Step Convex_Hulls0:
-        self.__convex_hulls_contours = self.find_contours_output
-        (self.convex_hulls_output) = self.__convex_hulls(self.__convex_hulls_contours)
-
         # Step Filter_Contours0:
-        self.__filter_contours_contours = self.convex_hulls_output
+        self.__filter_contours_contours = self.find_contours_output
         (self.filter_contours_output) = self.__filter_contours(self.__filter_contours_contours, self.__filter_contours_min_area, self.__filter_contours_min_perimeter, self.__filter_contours_min_width, self.__filter_contours_max_width, self.__filter_contours_min_height, self.__filter_contours_max_height, self.__filter_contours_solidity, self.__filter_contours_max_vertices, self.__filter_contours_min_vertices, self.__filter_contours_min_ratio, self.__filter_contours_max_ratio)
+
+        # Step Convex_Hulls0:
+        self.__convex_hulls_contours = self.filter_contours_output
+        (self.convex_hulls_output) = self.__convex_hulls(self.__convex_hulls_contours)
 
 
     @staticmethod
-    def __hsl_threshold(input, hue, sat, lum):
-        """Segment an image based on hue, saturation, and luminance ranges.
+    def __hsv_threshold(input, hue, sat, val):
+        """Segment an image based on hue, saturation, and value ranges.
         Args:
             input: A BGR numpy.ndarray.
             hue: A list of two numbers the are the min and max hue.
             sat: A list of two numbers the are the min and max saturation.
-            lum: A list of two numbers the are the min and max luminance.
+            lum: A list of two numbers the are the min and max value.
         Returns:
             A black and white numpy.ndarray.
         """
-        out = cv2.cvtColor(input, cv2.COLOR_BGR2HLS)
-        return cv2.inRange(out, (hue[0], lum[0], sat[0]),  (hue[1], lum[1], sat[1]))
+        out = cv2.cvtColor(input, cv2.COLOR_BGR2HSV)
+        return cv2.inRange(out, (hue[0], sat[0], val[0]),  (hue[1], sat[1], val[1]))
 
     @staticmethod
     def __find_contours(input, external_only):
@@ -95,19 +98,6 @@ class GripPipeline:
         method = cv2.CHAIN_APPROX_SIMPLE
         contours, hierarchy =cv2.findContours(input, mode=mode, method=method)
         return contours
-
-    @staticmethod
-    def __convex_hulls(input_contours):
-        """Computes the convex hulls of contours.
-        Args:
-            input_contours: A list of numpy.ndarray that each represent a contour.
-        Returns:
-            A list of numpy.ndarray that each represent a contour.
-        """
-        output = []
-        for contour in input_contours:
-            output.append(cv2.convexHull(contour))
-        return output
 
     @staticmethod
     def __filter_contours(input_contours, min_area, min_perimeter, min_width, max_width,
@@ -154,32 +144,40 @@ class GripPipeline:
             output.append(contour)
         return output
 
+    @staticmethod
+    def __convex_hulls(input_contours):
+        """Computes the convex hulls of contours.
+        Args:
+            input_contours: A list of numpy.ndarray that each represent a contour.
+        Returns:
+            A list of numpy.ndarray that each represent a contour.
+        """
+        output = []
+        for contour in input_contours:
+            output.append(cv2.convexHull(contour))
+        return output
+
 
 # Self written code
-cap = cv2.VideoCapture(0)
+img = imread('WIN_20190122_17_53_22_Pro',1)
 eyes = GripPipeline()
+
 while(True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    uselessThing, shape = cap.read()
-    unneeded, boundedImg = cap.read()
-
     # access the generated code
-    eyes.process(frame)
-    # Display the resulting frame
+    eyes.process(img)
 
-    # This draws the contour of the pencil
+    # This draws the contour of the tape
     shape = cv2.drawContours(shape, eyes.filter_contours_output, -1, (255,255,255), 3)
 
-    # Draws the bounding rectangle, the reason for it to be in if statement is because the pencil is not always detected
+    # Draws the bounding rectangle, the reason for it to be in if statement is because the tape is not always detected
     if len(eyes.filter_contours_output) > 0:
         # Creates rectangle
-        pencilNum = 0
-        numOfPencils = len(eyes.filter_contours_output)
+        tapeNum = 0
+        numOftape = len(eyes.filter_contours_output)
         font = cv2.FONT_HERSHEY_SIMPLEX
-        boundedImg = cv2.putText(boundedImg,'# of Pencils: '+str(numOfPencils),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftapes),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
         for borders in eyes.filter_contours_output:
-            pencilNum += 1
+            tapeNum += 1
             cnt = borders
             rect = cv2.minAreaRect(cnt)
             box = cv2.boxPoints(rect)
@@ -193,8 +191,8 @@ while(True):
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
             boundedImg=cv2.circle(boundedImg, (cx,cy), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
-            boundedImg = cv2.putText(boundedImg,'Pencil#: '+str(pencilNum)+', Center at: '+str(cx)+','+str(cy),(box[0][0],box[0][1]), font, 0.35,(255,255,255),1,cv2.LINE_AA)
-        # Finding the middle point only if there are 2 pencils (will be updated later)
+            boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(cx)+','+str(cy),(box[0][0],box[0][1]), font, 0.35,(255,255,255),1,cv2.LINE_AA)
+        # Finding the middle point only if there are 2 tapes (will be updated later)
         if len(eyes.filter_contours_output) == 2:
             M1 = cv2.moments(eyes.filter_contours_output[0])
             M2 = cv2.moments(eyes.filter_contours_output[1])
@@ -205,7 +203,7 @@ while(True):
             area1, area2 = M1['m00'], M2['m00']
             boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
             boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
-            boundedImg = cv2.putText(boundedImg,'Area Pencil 1: '+str(area1)+', Area Pencil 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+            boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
     # multiple image to compare effect
     cv2.imshow('frame',frame)
@@ -216,5 +214,4 @@ while(True):
 
 
 # When everything done, release the capture
-cap.release()
 cv2.destroyAllWindows()

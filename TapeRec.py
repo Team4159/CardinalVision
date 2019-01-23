@@ -165,20 +165,19 @@ while(True):
 
     # access the generated code
     eyes.process(frame)
-    # Display the resulting frame
 
-    # This draws the contour of the pencil
+    # This draws the contour of the tape
     shape = cv2.drawContours(shape, eyes.filter_contours_output, -1, (255,255,255), 3)
 
-    # Draws the bounding rectangle, the reason for it to be in if statement is because the pencil is not always detected
+    # Draws the bounding rectangle, the reason for it to be in if statement is because the tape is not always detected
     if len(eyes.filter_contours_output) > 0:
         # Creates rectangle
-        pencilNum = 0
-        numOfPencils = len(eyes.filter_contours_output)
+        tapeNum = 0
+        numOftape = len(eyes.filter_contours_output)
         font = cv2.FONT_HERSHEY_SIMPLEX
-        boundedImg = cv2.putText(boundedImg,'# of Pencils: '+str(numOfPencils),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftapes),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
         for borders in eyes.filter_contours_output:
-            pencilNum += 1
+            tapeNum += 1
             cnt = borders
             rect = cv2.minAreaRect(cnt)
             box = cv2.boxPoints(rect)
@@ -192,8 +191,8 @@ while(True):
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
             boundedImg=cv2.circle(boundedImg, (cx,cy), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
-            boundedImg = cv2.putText(boundedImg,'Pencil#: '+str(pencilNum)+', Center at: '+str(cx)+','+str(cy),(box[0][0],box[0][1]), font, 0.35,(255,255,255),1,cv2.LINE_AA)
-        # Finding the middle point only if there are 2 pencils (will be updated later)
+            boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(cx)+','+str(cy),(box[0][0],box[0][1]), font, 0.35,(255,255,255),1,cv2.LINE_AA)
+        # Finding the middle point only if there are 2 tapes (will be updated later)
         if len(eyes.filter_contours_output) == 2:
             M1 = cv2.moments(eyes.filter_contours_output[0])
             M2 = cv2.moments(eyes.filter_contours_output[1])
@@ -204,7 +203,7 @@ while(True):
             area1, area2 = M1['m00'], M2['m00']
             boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
             boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
-            boundedImg = cv2.putText(boundedImg,'Area Pencil 1: '+str(area1)+', Area Pencil 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+            boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
     # multiple image to compare effect
     cv2.imshow('frame',frame)

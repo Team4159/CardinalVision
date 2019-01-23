@@ -197,13 +197,17 @@ class Tape:
         return self.sortedVerticesY
 
     def getAngle(self):
-        self.angle = math.degrees(math.atan2(math.fabs(self.getSortedVerticesX()[0][0]-self.getSortedVerticesX()[1][0]), math.fabs(self.getSortedVerticesX()[0][1]-self.getSortedVerticesX()[1][1])))
+        self.angle = math.degrees(math.atan2(self.getSortedVerticesX()[1][0]-self.getSortedVerticesX()[0][0], self.getSortedVerticesX()[1][1]-self.getSortedVerticesX()[0][1]))
         return self.angle
 
-
+    def getVertices(self):
+        return self.vertices
 
     # access the generated code
 eyes.process(frame)
+
+def getLeftCorner(list):
+    return list[0][1]
     # Draws the bounding rectangle, the reason for it to be in if statement is because the tape is not always detected
 if len(eyes.filter_contours_output) > 0:
     # Creates rectangle
@@ -212,35 +216,37 @@ if len(eyes.filter_contours_output) > 0:
     font = cv2.FONT_HERSHEY_SIMPLEX
     boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftape),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
     tapes = []
+    sortedTapes = []
+    groups = []
     for borders in eyes.filter_contours_output:
-        tapeNum += 1
-        cnt = borders
-        rect = cv2.minAreaRect(cnt)
-        box = cv2.boxPoints(rect)
-        box = np.int0(box)
-        boundedImg = cv2.drawContours(boundedImg,[box],0,(0,0,255),2)
         tape = Tape(borders)
-        tape.getAngle()
-
+        tapes.append(tape)
+        tapeNum += 1
+        boundedImg = cv2.drawContours(boundedImg,[tape.vertices],0,(0,0,255),2)
             # Gets statistics on the rectangle
-        M = cv2.moments(cnt)
-            # Creates the center point
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-        boundedImg=cv2.circle(boundedImg, (cx,cy), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
-        boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(cx)+','+str(cy)+'Angle: '+str(math.floor(tape.getAngle())),(box[0][0],box[0][1]), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+        boundedImg=cv2.circle(boundedImg, tape.getCenter(), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
+        boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(tape.getCenter()[0])+','+str(tape.getCenter()[1])+'Angle: '+str(math.floor(tape.getAngle())),(tape.vertices[0][0],tape.vertices[0][1]), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+
+    sortedTapes = sorted(tapes, key = getLeftCorner)
+
+    # Grouping
+    # for i in range(len(tapes)):
+    #     for j in range(len(tapes)):
+    #         if sortedTapes[i].getAngle()-sortedTapes[j].getAngle() > 0 
+
+
     # Finding the middle point only if there are 2 tapes (will be updated later)
-    if len(eyes.filter_contours_output) == 2:
-        M1 = cv2.moments(eyes.filter_contours_output[0])
-        M2 = cv2.moments(eyes.filter_contours_output[1])
-        c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
-        c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
-        centerX = int((c1x + c2x)/2)
-        centerY = int((c1y + c2y)/2)
-        area1, area2 = M1['m00'], M2['m00']
-        boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
-        boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
-        boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+    # if len(eyes.filter_contours_output) == 2:
+    #     M1 = cv2.moments(eyes.filter_contours_output[0])
+    #     M2 = cv2.moments(eyes.filter_contours_output[1])
+    #     c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
+    #     c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
+    #     centerX = int((c1x + c2x)/2)
+    #     centerY = int((c1y + c2y)/2)
+    #     area1, area2 = M1['m00'], M2['m00']
+    #     boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
+    #     boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
+    #     boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
     # multiple image to compare effect
 cv2.imshow('frame3',boundedImg)
 cv2.waitKey(0)

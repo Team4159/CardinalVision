@@ -190,7 +190,7 @@ class Tape:
         self.sortedVerticesX = list(sorted(self.vertices, key = x))
         return self.sortedVerticesX
 
-    def getSortedVerticesX(self):
+    def getSortedVerticesY(self):
         def Y(list):
             return list[1]
         self.sortedVerticesY = sorted(self.vertices, key = Y)
@@ -203,50 +203,57 @@ class Tape:
     def getVertices(self):
         return self.vertices
 
-    # access the generated code
+# access the generated code
 eyes.process(frame)
 
-def getLeftCorner(list):
-    return list[0][1]
-    # Draws the bounding rectangle, the reason for it to be in if statement is because the tape is not always detected
-if len(eyes.filter_contours_output) > 0:
-    # Creates rectangle
-    tapeNum = 0
-    numOftape = len(eyes.filter_contours_output)
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftape),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
-    tapes = []
-    sortedTapes = []
-    groups = []
-    for borders in eyes.filter_contours_output:
-        tape = Tape(borders)
-        tapes.append(tape)
-        tapeNum += 1
-        boundedImg = cv2.drawContours(boundedImg,[tape.vertices],0,(0,0,255),2)
-            # Gets statistics on the rectangle
-        boundedImg=cv2.circle(boundedImg, tape.getCenter(), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
-        boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(tape.getCenter()[0])+','+str(tape.getCenter()[1])+'Angle: '+str(math.floor(tape.getAngle())),(tape.vertices[0][0],tape.vertices[0][1]), font, 0.4,(255,255,255),1,cv2.LINE_AA)
 
+    # Draws the bounding rectangle, the reason for it to be in if statement is because the tape is not always detected
+    # Creates rectangle
+tapeNum = 0
+numOftape = len(eyes.filter_contours_output)
+font = cv2.FONT_HERSHEY_SIMPLEX
+boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftape),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+tapes = []
+sortedTapes = []
+groups = []
+for borders in eyes.filter_contours_output:
+    tape = Tape(borders)
+    tapes.append(tape)
+    tapeNum += 1
+    boundedImg = cv2.drawContours(boundedImg,[tape.vertices],0,(0,0,255),2)
+        # Gets statistics on the rectangle
+    boundedImg=cv2.circle(boundedImg, tape.getCenter(), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
+    boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(tape.getCenter()[0])+','+str(tape.getCenter()[1])+'Angle: '+str(math.floor(tape.getAngle())),(tape.vertices[0][0],tape.vertices[0][1]), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+
+    def getLeftCorner(list):
+        return list.getSortedVerticesX()[0][1]
     sortedTapes = sorted(tapes, key = getLeftCorner)
 
     # Grouping
-    # for i in range(len(tapes)):
-    #     for j in range(len(tapes)):
-    #         if sortedTapes[i].getAngle()-sortedTapes[j].getAngle() > 0 
+    for i in range(len(tapes)):
+        for j in range(len(tapes)):
+            if sortedTapes[i].getAngle()-sortedTapes[j].getAngle() > 0 :
+                groups.append([sortedTapes[i], sortedTapes[j]])
+                sortedTapes.remove(sortedTapes[i])
+                sortedTapes.remove(sortedTapes[j])
+                break
 
 
     # Finding the middle point only if there are 2 tapes (will be updated later)
-    # if len(eyes.filter_contours_output) == 2:
-    #     M1 = cv2.moments(eyes.filter_contours_output[0])
-    #     M2 = cv2.moments(eyes.filter_contours_output[1])
-    #     c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
-    #     c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
-    #     centerX = int((c1x + c2x)/2)
-    #     centerY = int((c1y + c2y)/2)
-    #     area1, area2 = M1['m00'], M2['m00']
-    #     boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
-    #     boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
-    #     boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+    for target in groups:
+        M1 = cv2.moments(target[0].contour)
+        M2 = cv2.moments(target[1].contour)
+        c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
+        c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
+        centerX = int((c1x + c2x)/2)
+        centerY = int((c1y + c2y)/2)
+        area1, area2 = M1['m00'], M2['m00']
+        boundedImg=cv2.circle(boundedImg, (centerX,centerY), 5, (0,255,255), thickness=-1, lineType=8, shift=0)
+        boundedImg = cv2.putText(boundedImg,str(centerX)+','+str(centerY),(centerX, centerY), font, 0.5,(0,255,255),1,cv2.LINE_AA)
+        boundedImg = cv2.putText(boundedImg,'Area tape 1: '+str(area1)+', Area tape 2: '+str(area2),(10, 30), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        boundedImg =  cv2.rectangle(boundedImg,(target[0].getSortedVerticesX()[2][0],target[0].getSortedVerticesX()[0][1]),(target[1].getSortedVerticesY()[2][0],target[1].getSortedVerticesY()[3][1]),(0,255,0),3)
+
+
     # multiple image to compare effect
 cv2.imshow('frame3',boundedImg)
 cv2.waitKey(0)

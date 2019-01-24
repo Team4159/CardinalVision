@@ -1,5 +1,5 @@
 """
-This is tape detectiong using still photos
+This is tape detectiong using still photos with angles and self created algorithm
 """
 
 import numpy as np
@@ -159,9 +159,9 @@ class GripPipeline:
 
 
 # Self written code
-frame = cv2.imread('WIN_20190122_17_53_22_Pro.jpg')
-shape = cv2.imread('WIN_20190122_17_53_22_Pro.jpg')
-boundedImg = cv2.imread('WIN_20190122_17_53_22_Pro.jpg')
+frame = cv2.imread('20190122_173236.jpg')
+shape = cv2.imread('20190122_173236.jpg')
+boundedImg = cv2.imread('20190122_173236.jpg')
 eyes = GripPipeline()
 
 class Tape:

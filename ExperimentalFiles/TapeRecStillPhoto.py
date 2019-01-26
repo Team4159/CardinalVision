@@ -255,7 +255,7 @@ for borders in eyes.filter_contours_output:
     boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(tape.getCenter()[0])+','+str(tape.getCenter()[1]),(tape.vertices[0][0],tape.vertices[0][1]), font, 0.4,(255,255,255),1,cv2.LINE_AA)
 
     def getLeftCorner(list):
-        return list.getSortedVerticesX()[0][1]
+        return list.getSortedVerticesX()[0][0]
     sortedTapes = sorted(tapes, key = getLeftCorner)
 
     # Grouping

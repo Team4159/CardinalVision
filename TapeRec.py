@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import cv2
 import math
@@ -12,9 +14,9 @@ class GripPipeline:
         """initializes all values to presets or None if need to be set
         """
 
-        self.__hsv_threshold_hue = [0.0, 180.0]
-        self.__hsv_threshold_saturation = [0.0, 130.5050505050505]
-        self.__hsv_threshold_value = [249.95503597122303, 255.0]
+        self.__hsv_threshold_hue = [0.0, 0.0]
+        self.__hsv_threshold_saturation = [0.0, 36.06060606060606]
+        self.__hsv_threshold_value = [217.85071942446044, 255.0]
 
         self.hsv_threshold_output = None
 
@@ -23,22 +25,7 @@ class GripPipeline:
 
         self.find_contours_output = None
 
-        self.__filter_contours_contours = self.find_contours_output
-        self.__filter_contours_min_area = 100.0
-        self.__filter_contours_min_perimeter = 200.0
-        self.__filter_contours_min_width = 50.0
-        self.__filter_contours_max_width = 100.0
-        self.__filter_contours_min_height = 0.0
-        self.__filter_contours_max_height = 200.0
-        self.__filter_contours_solidity = [0, 100]
-        self.__filter_contours_max_vertices = 1000000.0
-        self.__filter_contours_min_vertices = 0.0
-        self.__filter_contours_min_ratio = 0.0
-        self.__filter_contours_max_ratio = 1000.0
-
-        self.filter_contours_output = None
-
-        self.__convex_hulls_contours = self.filter_contours_output
+        self.__convex_hulls_contours = self.find_contours_output
 
         self.convex_hulls_output = None
 
@@ -55,12 +42,8 @@ class GripPipeline:
         self.__find_contours_input = self.hsv_threshold_output
         (self.find_contours_output) = self.__find_contours(self.__find_contours_input, self.__find_contours_external_only)
 
-        # Step Filter_Contours0:
-        self.__filter_contours_contours = self.find_contours_output
-        (self.filter_contours_output) = self.__filter_contours(self.__filter_contours_contours, self.__filter_contours_min_area, self.__filter_contours_min_perimeter, self.__filter_contours_min_width, self.__filter_contours_max_width, self.__filter_contours_min_height, self.__filter_contours_max_height, self.__filter_contours_solidity, self.__filter_contours_max_vertices, self.__filter_contours_min_vertices, self.__filter_contours_min_ratio, self.__filter_contours_max_ratio)
-
         # Step Convex_Hulls0:
-        self.__convex_hulls_contours = self.filter_contours_output
+        self.__convex_hulls_contours = self.find_contours_output
         (self.convex_hulls_output) = self.__convex_hulls(self.__convex_hulls_contours)
 
 
@@ -96,51 +79,6 @@ class GripPipeline:
         return contours
 
     @staticmethod
-    def __filter_contours(input_contours, min_area, min_perimeter, min_width, max_width,
-                        min_height, max_height, solidity, max_vertex_count, min_vertex_count,
-                        min_ratio, max_ratio):
-        """Filters out contours that do not meet certain criteria.
-        Args:
-            input_contours: Contours as a list of numpy.ndarray.
-            min_area: The minimum area of a contour that will be kept.
-            min_perimeter: The minimum perimeter of a contour that will be kept.
-            min_width: Minimum width of a contour.
-            max_width: MaxWidth maximum width.
-            min_height: Minimum height.
-            max_height: Maximimum height.
-            solidity: The minimum and maximum solidity of a contour.
-            min_vertex_count: Minimum vertex Count of the contours.
-            max_vertex_count: Maximum vertex Count.
-            min_ratio: Minimum ratio of width to height.
-            max_ratio: Maximum ratio of width to height.
-        Returns:
-            Contours as a list of numpy.ndarray.
-        """
-        output = []
-        for contour in input_contours:
-            x,y,w,h = cv2.boundingRect(contour)
-            if (w < min_width or w > max_width):
-                continue
-            if (h < min_height or h > max_height):
-                continue
-            area = cv2.contourArea(contour)
-            if (area < min_area):
-                continue
-            if (cv2.arcLength(contour, True) < min_perimeter):
-                continue
-            hull = cv2.convexHull(contour)
-            solid = 100 * area / cv2.contourArea(hull)
-            if (solid < solidity[0] or solid > solidity[1]):
-                continue
-            if (len(contour) < min_vertex_count or len(contour) > max_vertex_count):
-                continue
-            ratio = (float)(w) / h
-            if (ratio < min_ratio or ratio > max_ratio):
-                continue
-            output.append(contour)
-        return output
-
-    @staticmethod
     def __convex_hulls(input_contours):
         """Computes the convex hulls of contours.
         Args:
@@ -154,8 +92,10 @@ class GripPipeline:
         return output
 
 
+
+
 # Self written code
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 eyes = GripPipeline()
 
 class Tape:
@@ -170,8 +110,10 @@ class Tape:
 
     def getCenter(self):
         M = cv2.moments(self.contour)
-        self.center = (int(M['m10']/M['m00']), int(M['m01']/M['m00']))
-        return self.center
+        if M['m00'] != 0:
+            self.center = (int(M['m10']/M['m00']), int(M['m01']/M['m00']))
+            return self.center
+        return (0,0)
 
     def getArea(self):
         M = cv2.moments(self.contour)
@@ -209,6 +151,7 @@ class Tape:
         return [a,b,c]
 
 def findIntercept(tape1, tape2, img):
+    y = 0
     if ((tape1.getEquation(img)[0]*tape2.getEquation(img)[1])-(tape1.getEquation(img)[1]*tape2.getEquation(img)[0]))!=0:
         y = ((tape1.getEquation(img)[0]*tape2.getEquation(img)[2])-(tape1.getEquation(img)[2]*tape2.getEquation(img)[0]))/((tape1.getEquation(img)[0]*tape2.getEquation(img)[1])-(tape1.getEquation(img)[1]*tape2.getEquation(img)[0]))
     return y
@@ -216,11 +159,13 @@ def findIntercept(tape1, tape2, img):
 def findCenter(tape1, tape2):
     M1 = cv2.moments(tape1.contour)
     M2 = cv2.moments(tape2.contour)
-    c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
-    c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
-    centerX = int((c1x + c2x)/2)
-    centerY = int((c1y + c2y)/2)
-    return [centerX, centerY]
+    if M1['m00'] != 0 and M2['m00'] != 0:
+        c1x, c1y = int(M1['m10']/M1['m00']), int(M1['m01']/M1['m00'])
+        c2x, c2y = int(M2['m10']/M2['m00']), int(M2['m01']/M2['m00'])
+        centerX = int((c1x + c2x)/2)
+        centerY = int((c1y + c2y)/2)
+        return [centerX, centerY]
+    return [0,0]
 
 while(True):
     # Capture frame-by-frame
@@ -232,20 +177,20 @@ while(True):
     eyes.process(frame)
 
     tapeNum = 0
-    numOftape = len(eyes.filter_contours_output)
+    numOftape = len(eyes.convex_hulls_output)
     font = cv2.FONT_HERSHEY_SIMPLEX
     boundedImg = cv2.putText(boundedImg,'# of tapes: '+str(numOftape),(10,12), font, 0.5,(255,255,255),1,cv2.LINE_AA)
     tapes = []
     sortedTapes = []
     groups = []
 
-    for borders in eyes.filter_contours_output:
+    for borders in eyes.convex_hulls_output:
         tape = Tape(borders)
         tapes.append(tape)
         tapeNum += 1
         boundedImg = cv2.drawContours(boundedImg,[tape.vertices],0,(0,0,255),2)
             # Gets statistics on the rectangle
-        boundedImg=cv2.circle(boundedImg, tape.getCenter(), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
+        # boundedImg=cv2.circle(boundedImg, tape.getCenter(), 5, (0,255,0), thickness=-1, lineType=8, shift=0)
         boundedImg = cv2.putText(boundedImg,'Tape#: '+str(tapeNum)+', Center at: '+str(tape.getCenter()[0])+','+str(tape.getCenter()[1]),(tape.vertices[0][0],tape.vertices[0][1]), font, 0.4,(255,255,255),1,cv2.LINE_AA)
         def getLeftCorner(list):
             return list.getSortedVerticesX()[0][1]
@@ -262,8 +207,7 @@ while(True):
         # Finding the middle point only if there are 2 tapes (will be updated later)
         for target in groups:
             boundedImg =  cv2.rectangle(boundedImg,(target[0].getSortedVerticesX()[2][0],target[0].getSortedVerticesX()[0][1]),(target[1].getSortedVerticesY()[2][0],target[1].getSortedVerticesY()[3][1]),(0,255,0),3)
-            for strip in target:
-                boundedImg = cv2.line(boundedImg,(strip.getCenterLine(boundedImg)[1]-1,strip.getCenterLine(boundedImg)[3]),(0,strip.getCenterLine(boundedImg)[2]),(0,255,0),2)
+                # boundedImg = cv2.line(boundedImg,(strip.getCenterLine(boundedImg)[1]-1,strip.getCenterLine(boundedImg)[3]),(0,strip.getCenterLine(boundedImg)[2]),(0,255,0),2)
 
     # multiple image to compare effect
     cv2.imshow('frame',frame)

@@ -79,6 +79,9 @@ def findCenter(tape1, tape2):
         return [centerX, centerY]
     return [0,0]
 
+def findDist(x):
+    return (9/2053408)*x**2-(17463/1283380)*x+(5866131/513352)
+
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -108,7 +111,7 @@ while(True):
         textY = 40
         for rects in tapes:
             num += 1
-            boundedImg = cv2.putText(boundedImg,'Tape#: '+str(num)+', Area: '+str(rects.getArea()),(10, textY), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+            boundedImg = cv2.putText(boundedImg,'Tape#: '+str(num)+', Area: '+str(rects.getArea())+', Dist: '+str(findDist(rects.getArea())),(10, textY), font, 0.4,(255,255,255),1,cv2.LINE_AA)
             textY += 10
 
         def getLeftCorner(list):

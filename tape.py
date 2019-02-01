@@ -62,4 +62,9 @@ class Tape:
         b = self.getCenterLine(img)[1]-1
         c = self.getCenterLine(img)[3]*(self.getCenterLine(img)[1]-1)
         return [a,b,c]
+
+    # get height of tape
+    def getHeight(self):
+        return max(vertex[1] for vertex in self.vertices) - min(vertex[1] for vertex in self.vertices)
+
 # end of class Tape

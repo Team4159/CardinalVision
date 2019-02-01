@@ -11,12 +11,12 @@ import zmq
 import time
 
 # Setting up ZMQ
-context = zmq.Context(1)
-socket = context.socket(zmq.PAIR)
-socket.bind("tcp://localhost:5555" )
+# context = zmq.Context(1)
+# socket = context.socket(zmq.PAIR)
+# socket.bind("tcp://localhost:5555" )
 
 # Self written code
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 eyes = GripPipeline()
 
 # Finds the intercept of the 2 center lines through the two tapes
@@ -40,15 +40,19 @@ def findCenter(tape1, tape2):
 
 # Converting the area of the tape into real distance
 def findDist(x):
-    return (9/2053408)*x**2-(17463/1283380)*x+(5866131/513352)
+    return -0.042495 * x + 6.97107
+    # return (9/2053408)*x**2-(17463/1283380)*x+(5866131/513352)
+
+
+
 
 # Everything in the loop runs framewise
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
-    uselessThing, shape = cap.read()
+    # uselessThing, shape = cap.read()
     unneeded, boundedImg = cap.read()
-    height, width = boundedImg.shape
+    height, width = boundedImg.shape[:2]
     center = [height/2, width/2]
 
     # access the generated code
@@ -92,7 +96,12 @@ while(True):
                         sortedTapes.remove(tape_1)
                         sortedTapes.remove(tape_2)
                         break
+        if len(groups_for_calc) > 0:
+            groupTargeted = max(groups_for_calc, key = lambda group: group.getGroupArea())
+            groupTargeted.targeted = True
 
+            offsetAngle = ((groupTargeted.getCenter()[0]-center[0])*75)/width
+            dist = (findDist(groupTargeted.tapeL.getHeight())+findDist(groupTargeted.tapeR.getHeight()))/2
 
 # ##################### Visuals #####################
 
@@ -101,17 +110,23 @@ while(True):
         textY = 40
         for rects in tapes:
             num += 1
-            boundedImg = cv2.putText(boundedImg,'Tape#: '+str(num)+', Area: '+str(rects.getArea())+', Dist: '+str(findDist(rects.getArea())),(10, textY), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+            boundedImg = cv2.putText(boundedImg,'Tape#: '+str(num)+', Area: '+str(rects.getArea())+', Dist: '+str(findDist(rects.getHeight())),(10, textY), font, 0.4,(255,255,255),1,cv2.LINE_AA)
             textY += 10
 
-        # Draws a bounding rectangle over the grouped tapes
-        for target in groups:
-            boundedImg =  cv2.rectangle(boundedImg,(target[0].getSortedVerticesX()[2][0],target[0].getSortedVerticesX()[0][1]),(target[1].getSortedVerticesY()[2][0],target[1].getSortedVerticesY()[3][1]),(0,255,0),3)
+
+        # Draws a bounding rectangle over the grouped tapes, the color of the targeted group has a different color
+        for target in groups_for_calc:
+            if target.targeted:
+                boundedImg =  cv2.rectangle(boundedImg,(target.tapeL.getSortedVerticesX()[2][0],target.tapeL.getSortedVerticesX()[0][1]),(target.tapeR.getSortedVerticesY()[2][0],target.tapeR.getSortedVerticesY()[3][1]),(255,255,0),3)
+                boundedImg = cv2.putText(boundedImg,'offset: '+str(offsetAngle)+', Dist: '+str(dist),(10,20), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+
+            else:
+                boundedImg =  cv2.rectangle(boundedImg,(target.tapeL.getSortedVerticesX()[2][0],target.tapeL.getSortedVerticesX()[0][1]),(target.tapeR.getSortedVerticesY()[2][0],target.tapeR.getSortedVerticesY()[3][1]),(0,255,0),3)
 
 
     # multiple image to compare effect
-    cv2.imshow('frame',frame)
-    cv2.imshow('frame2',shape)
+    # cv2.imshow('frame',frame)
+    # cv2.imshow('frame2',shape)
     cv2.imshow('frame3',boundedImg)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

@@ -3,7 +3,6 @@ import cv2
 import math
 from enum import Enum
 from gripir import GripPipeline
-from networktables import NetworkTables
 from tape import Tape
 
 class Group:

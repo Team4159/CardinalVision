@@ -16,7 +16,7 @@ import time
 # socket.bind("tcp://localhost:5555" )
 
 # Self written code
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 eyes = GripPipeline()
 
 # Finds the intercept of the 2 center lines through the two tapes
@@ -114,6 +114,8 @@ while(True):
             textY += 10
 
 
+
+        
         # Draws a bounding rectangle over the grouped tapes, the color of the targeted group has a different color
         for target in groups_for_calc:
             if target.targeted:

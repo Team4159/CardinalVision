@@ -105,7 +105,7 @@ while True:
             # Run if the intersection of the two lines are higher than the contours (the two pieces of tape are angled towards each other)
             # TODO: Might be a better idea to compare the slopes of the two lines (positive or negative)
             # because there are actually some extreme cases where the intersect point is lower than one of the tape's y coordinate even though they are meant to be grouped together
-            if(intersectY < rightY or intersectY < leftY):
+            if intersectY < rightY or intersectY < leftY:
 
                 # Bound a rectangle on the two contours and get the (x,y) of the top left coordinate and the rectangle's width and height
                 xL, yL, wL, hL = cv2.boundingRect(leftTape)
@@ -126,17 +126,7 @@ while True:
 
     # Loop through each bounding box and compute which has the largest area
     if boundingBoxes:
-
-        largestBoundingBox = boundingBoxes[0]
-        largestArea = 0
-
-        for rect in boundingBoxes:
-
-            area = rect[2] * rect[3]
-
-            if (area > largestArea):
-                largestArea = area
-                largestBoundingBox = rect
+        largestBoundingBox = max(boundingBoxes, key=lambda rect: rect[2] * rect[3])
 
         xValueToAlignTo = largestBoundingBox[0] + largestBoundingBox[2] / 2
         # print(xValueToAlignTo)

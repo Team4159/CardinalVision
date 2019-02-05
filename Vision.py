@@ -5,6 +5,9 @@ import zmq
 import time
 import struct
 
+import wpilib
+
+
 # Takes a contour and fits a line to it. Returns 2 points on that line.
 def fitLine(cnt):
     _, cols = frame.shape[:2]
@@ -41,26 +44,30 @@ upper_range = np.array([0.0, 0.0, 255.0])
 last_tick = time.time()
 tick_time = 0.1  # arbitrary, tune for with live camera and zmq
 camera = 0  # change default camera
+xbox_port = 2  # change xbox usb port
 
-# cap = cv2.VideoCapture(camera)
+cap = cv2.VideoCapture(camera)
 # cap.set(3, 320) theoretically you can set the camera properties
 # cap.set(4, 240)
 
+xbox = wpilib.xboxcontroller.XboxController(xbox_port)
+last_value = False
+
 context = zmq.Context()
-socket = context.socket(zmq.PAIR)
+socket = context.socket(zmq.PUB)
 socket.bind('tcp://127.0.0.1:5555')  # arbitrary
 
 while True:
-    # data = socket.recv()
-    # switchCamera = struct.unpack('b', data)
-    # if switchCamera:
-    #     camera = 0 if camera == 1 else 1
-    #     cap = cv2.VideoCapture(camera)
+    tmp = xbox.getRawButton(1)
+    if tmp and not last_value:
+        camera = 1 if camera == 0 else 0
+        cap = cv2.VideoCapture(camera)
+    last_value = tmp
 
-    # _, frame = cap.read()
+    _, frame = cap.read()
 
     # For testing purposes we will process on a still image
-    frame = cv2.imread('test2.png')
+    # frame = cv2.imread('test2.png')
 
     # Convert BGR to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -133,8 +140,11 @@ while True:
 
         # socket.send(struct.pack('d', xValueToAlignTo))
 
+    else:
+        pass  # send a blank
+
     # Display the frame
-    cv2.imshow("Frame", frame)
+    cv2.imshow('Frame', frame)
 
     # Exit program if any key is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):

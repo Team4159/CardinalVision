@@ -3,7 +3,7 @@ import zmq
 import time
 import struct
 
-from Vision import Vision
+from vision import Vision
 
 
 class VisionServer:

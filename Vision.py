@@ -8,7 +8,7 @@ class Vision:
     upper_range = np.array([0.0, 0.0, 255.0])
 
     @staticmethod
-    def process_image(image, display=False):
+    def process_image(image):
         rows, cols = image.shape[:2]
         origin = (rows / 2, cols / 2)
 
@@ -68,11 +68,10 @@ class Vision:
                     # Add combinedRect to the list of boundingBoxes
                     boundingBoxes.append(combinedRect)
 
-                    if display:
-                        # Draw the bounding box to the frame
-                        image = cv2.rectangle(image, (combinedRect[0], combinedRect[1]),
-                                              (combinedRect[0] + combinedRect[2], combinedRect[1] + combinedRect[3]),
-                                              (0, 255, 0), 3)
+                    # Draw the bounding box to the frame
+                    image = cv2.rectangle(image, (combinedRect[0], combinedRect[1]),
+                                          (combinedRect[0] + combinedRect[2], combinedRect[1] + combinedRect[3]),
+                                          (0, 255, 0), 3)
 
         # Loop through each bounding box and compute which has the largest area
         if boundingBoxes:
@@ -80,10 +79,10 @@ class Vision:
             xValueToAlignTo = largestBoundingBox[0] + largestBoundingBox[2] / 2
             translationValue = (xValueToAlignTo - origin[0]) / rows  # how much we need to move l to r to align
 
-            return translationValue, image if display else None
+            return translationValue, image
 
         else:
-            return None, image if display else None
+            return None, image
 
     @staticmethod
     def fitLine(cnt):
@@ -109,7 +108,7 @@ class Vision:
 
 
 if __name__ == '__main__':
-    translationValue, frame = Vision.process_image(cv2.imread('test_images/test2.png'), display=True)
+    translationValue, frame = Vision.process_image(cv2.imread('test_images/test2.png'))
     print(translationValue)
 
     # Display the frame

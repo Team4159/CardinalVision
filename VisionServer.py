@@ -48,3 +48,8 @@ class VisionServer:
 
         self.socket.send(struct.pack('d', frontTranslationValue))
         self.socket.send(struct.pack('d', backTranslationValue))
+
+
+if __name__ == '__main__':
+    vision_server = VisionServer()
+    vision_server.mainloop()

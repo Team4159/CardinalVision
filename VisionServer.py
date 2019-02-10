@@ -1,5 +1,4 @@
 import cv2
-import wpilib
 import zmq
 import time
 import struct
@@ -20,13 +19,6 @@ class VisionServer:
         # self.front_cam.set(3, 320) theoretically you can set the camera properties
         # self.back_cam.set(4, 240)
 
-        self.camera = self.front_cam
-
-        # controls
-        self.xbox_port = 2  # change xbox usb port
-        self.xbox = wpilib.xboxcontroller.XboxController(self.xbox_port)
-        self.button_number = 1
-
         # zmq comms
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
@@ -42,14 +34,21 @@ class VisionServer:
             self.last_tick = tmp
 
     def run(self):
-        if self.xbox.getRawButtonPressed(self.button_number):
-            self.camera = self.back_cam if self.camera is self.front_cam else self.front_cam
+        _, front_frame = self.front_cam.read()
+        _, back_frame = self.back_cam.read()
 
-        _, frame = self.camera.read()
+        frontTranslationValue, _ = Vision.process_image(front_frame)
+        backTranslationValue, _ = Vision.process_image(back_frame)
 
-        translationValue, _ = Vision.process_image(frame)
+        if frontTranslationValue is None:
+            frontTranslationValue = 0  # don't move if no tapes
 
-        if translationValue is None:
-            translationValue = 0  # don't move if no tapes
+        if backTranslationValue is None:
+            backTranslationValue = 0  # don't move if no tapes
 
-        self.socket.send(struct.pack('d', translationValue))
+        self.socket.send(struct.pack('<2d', frontTranslationValue, backTranslationValue))
+
+
+if __name__ == '__main__':
+    vision_server = VisionServer()
+    vision_server.mainloop()

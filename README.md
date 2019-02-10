@@ -5,8 +5,9 @@ This is Team 4159's image recognition code running on the Nvidia Jetson TX1. We 
 1. Install python
 2. Clone this directory
 3. `cd` into directory
-4. `pip3 install -r requirements.txt`
-5. `python3 Vision.py`
+4. Uncomment OpenCV in `requirements.txt`
+5. `pip3 install -r requirements.txt`
+6. `python3 Vision.py`
 
 ## Links for Getting it to run on the Jetson TX1
 

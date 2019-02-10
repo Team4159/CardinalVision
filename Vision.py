@@ -43,8 +43,8 @@ class Vision:
                 rightY = int(rightM['m01'] / rightM['m00'])
 
                 # Fit each contour to a line and get two points from each line
-                x1, y1, x2, y2 = Vision.fitLine(cols, leftTape)
-                x3, y3, x4, y4 = Vision.fitLine(cols, rightTape)
+                x1, y1, x2, y2 = Vision.fitLine(leftTape)
+                x3, y3, x4, y4 = Vision.fitLine(rightTape)
 
                 # Compute the y coordinate of the intersection point of the two lines
                 intersectY = y1 + ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / (
@@ -85,15 +85,10 @@ class Vision:
             return None, image
 
     @staticmethod
-    def fitLine(cols, cnt):
-        vx, vy, x, y = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
-        lefty = int((-x * vy / vx) + y)
-        righty = int(((cols - x) * vy / vx) + y)
-        x0 = cols - 1
-        y0 = righty
-        x1 = 0
-        y1 = lefty
-        return x0, y0, x1, y1
+    def fitLine(cnt):
+        vx, vy, x0, y0 = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
+        x1, y1 = np.array([x0, y0]) + (100 * np.array([vx, vy]))
+        return x0, y0, x1.item(), y1.item()
 
     @staticmethod
     def sortLeftToRight(cnts):

@@ -2,3 +2,4 @@ flask==1.0.2
 numpy==1.16.1
 opencv-python==4.0.0.21
 pyzmq==17.1.2
+wpilib==2019.0.3

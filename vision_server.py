@@ -41,7 +41,7 @@ class VisionServer:
         back_error, _ = Vision.process_image(back_frame)
 
         if front_error is None:
-            front_error = 0  # don't move if no tapes
+           front_error = 0  # don't move if no tapes
 
         if back_error is None:
             back_error = 0  # don't move if no tapes

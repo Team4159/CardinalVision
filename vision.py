@@ -37,6 +37,10 @@ class Vision:
                 leftM = cv2.moments(leftTape)
                 rightM = cv2.moments(rightTape)
 
+                # skip if either contour has an area of 0
+                if leftM['m00'] == 0 or rightM['m00'] == 0:
+                    continue
+
                 # Calculate the centeroid y coordinates of the two contours
                 leftY = int(leftM['m01'] / leftM['m00'])
                 rightY = int(rightM['m01'] / rightM['m00'])

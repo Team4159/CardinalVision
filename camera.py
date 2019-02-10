@@ -1,6 +1,7 @@
 # https://github.com/log0/video_streaming_with_flask_example/blob/master/camera.py
 
 import cv2
+import wpilib
 
 
 class VideoCamera(object):
@@ -9,6 +10,8 @@ class VideoCamera(object):
         self.video0 = cv2.VideoCapture(0)
         self.video1 = cv2.VideoCapture(1)
 
+        self.xbox = wpilib.Joystick(1)
+
     def __del__(self):
         self.video0.release()
         self.video1.release()
@@ -16,10 +19,13 @@ class VideoCamera(object):
     switch = False
 
     def get_frame(self):
+        if self.xbox.getTriggerPressed():  # change button
+            self.switch = not self.switch
 
         if self.switch:
             success, image = self.video1.read()
             image = cv2.applyColorMap(image, cv2.COLORMAP_PINK)
+
         else:
             success, image = self.video0.read()
             image = cv2.applyColorMap(image, cv2.COLORMAP_BONE)

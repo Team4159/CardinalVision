@@ -37,16 +37,16 @@ class VisionServer:
         _, front_frame = self.front_cam.read()
         _, back_frame = self.back_cam.read()
 
-        frontTranslationValue, _ = Vision.process_image(front_frame)
-        backTranslationValue, _ = Vision.process_image(back_frame)
+        front_error, _ = Vision.process_image(front_frame)
+        back_error, _ = Vision.process_image(back_frame)
 
-        if frontTranslationValue is None:
-            frontTranslationValue = 0  # don't move if no tapes
+        if front_error is None:
+            front_error = 0  # don't move if no tapes
 
-        if backTranslationValue is None:
-            backTranslationValue = 0  # don't move if no tapes
+        if back_error is None:
+            back_error = 0  # don't move if no tapes
 
-        self.socket.send(struct.pack('<2d', frontTranslationValue, backTranslationValue))
+        self.socket.send(struct.pack('<2d', front_error, back_error))
 
 
 if __name__ == '__main__':

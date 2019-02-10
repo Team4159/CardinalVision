@@ -10,7 +10,6 @@ class Vision:
     @staticmethod
     def process_image(image):
         rows, cols = image.shape[:2]
-        origin = (rows / 2, cols / 2)
 
         # Convert BGR to HSV
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -77,9 +76,9 @@ class Vision:
         if boundingBoxes:
             largestBoundingBox = max(boundingBoxes, key=lambda rect: rect[2] * rect[3])
             xValueToAlignTo = largestBoundingBox[0] + largestBoundingBox[2] / 2
-            translationValue = (xValueToAlignTo - origin[0]) / rows  # how much we need to move l to r to align
+            error = (xValueToAlignTo - (cols / 2)) / (cols / 2)  # error scaled down to -1 to 1
 
-            return translationValue, image
+            return error, image
 
         else:
             return None, image

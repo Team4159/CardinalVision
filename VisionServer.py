@@ -46,8 +46,7 @@ class VisionServer:
         if backTranslationValue is None:
             backTranslationValue = 0  # don't move if no tapes
 
-        self.socket.send(struct.pack('d', frontTranslationValue))
-        self.socket.send(struct.pack('d', backTranslationValue))
+        self.socket.send(struct.pack('<2d', frontTranslationValue, backTranslationValue))
 
 
 if __name__ == '__main__':

@@ -21,7 +21,7 @@ class Vision:
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         # Sort contours from left to right
-        contours = Vision.sortLeftToRight(contours)
+        contours = Vision.sort_left_to_right(contours)
 
         boundingBoxes = []
 
@@ -37,13 +37,17 @@ class Vision:
                 leftM = cv2.moments(leftTape)
                 rightM = cv2.moments(rightTape)
 
+                # skip if either contour has an area of 0
+                if leftM['m00'] == 0 or rightM['m00'] == 0:
+                    continue
+
                 # Calculate the centeroid y coordinates of the two contours
                 leftY = int(leftM['m01'] / leftM['m00'])
                 rightY = int(rightM['m01'] / rightM['m00'])
 
                 # Fit each contour to a line and get two points from each line
-                x1, y1, x2, y2 = Vision.fitLine(leftTape)
-                x3, y3, x4, y4 = Vision.fitLine(rightTape)
+                x1, y1, x2, y2 = Vision.fit_line(leftTape)
+                x3, y3, x4, y4 = Vision.fit_line(rightTape)
 
                 # Compute the y coordinate of the intersection point of the two lines
                 intersectY = y1 + ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / (
@@ -84,16 +88,17 @@ class Vision:
             return None, image
 
     @staticmethod
-    def fitLine(cnt):
+    def fit_line(cnt):
         vx, vy, x0, y0 = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
         x1, y1 = np.array([x0, y0]) + (100 * np.array([vx, vy]))
         return x0, y0, x1.item(), y1.item()
 
     @staticmethod
-    def sortLeftToRight(cnts):
+    def sort_left_to_right(cnts):
         # Takes a list of contours and returns it sorted from left to right
         boundingBoxes = [cv2.boundingRect(c) for c in cnts]
-        cnts, boundingBoxes = zip(*sorted(zip(cnts, boundingBoxes), key=lambda b: b[1][0], reverse=False))
+        if len(cnts) >= 2:
+            cnts, boundingBoxes = zip(*sorted(zip(cnts, boundingBoxes), key=lambda b: b[1][0], reverse=False))
         return cnts
 
     @staticmethod

@@ -6,15 +6,16 @@ from gripir import GripPipeline
 from tape import Tape
 
 class Group:
-    def __init__(self, tapeA, tapeB):
+    def __init__(self, tapeA, tapeB, centXPos):
         self.tapeL = tapeA
         self.tapeR = tapeB
         self.center = None
         self.area = None
-        self.leftTilt = False
-        self.rightTilt = False
-        self.noTilt = False
+        self.leftPos = False
+        self.rightPos = False
+        self.noPos = False
         self.targeted = False
+        self.centX = centXPos
 
     def getCenter(self):
         M1 = cv2.moments(self.tapeL.contour)
@@ -32,16 +33,21 @@ class Group:
         self.area = self.tapeL.getArea()+self.tapeR.getArea()
         return self.area
 
-    def checkTilt(self):
-        if(int(round(self.tapeL.getArea(), -2)) > int(round(self.tapeR.getArea(), -2))):
-            self.leftTilt = False
-            self.rightTilt = True
-            self.noTilt = False
-        elif(int(round(self.tapeL.getArea(), -2)) < int(round(self.tapeR.getArea(), -2))):
-            self.leftTilt = True
-            self.rightTilt = False
-            self.noTilt = False
+    def checkPos(self):
+        if(self.getCenter()[0] > self.centX):
+            self.leftPos = True
+            self.rightPos = False
+            self.noPos = False
+        elif(self.getCenter()[0] < self.centX):
+            self.leftPos = False
+            self.rightPos = True
+            self.noPos = False
         else:
-            self.leftTilt = True
-            self.rightTilt = False
-            self.noTilt = False
+            self.leftPos = False
+            self.rightPos = False
+            self.noPos = True
+
+    def tiltAngle(self):
+        self.checkPos()
+        if(self.leftPos):
+            ret

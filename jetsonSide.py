@@ -10,7 +10,7 @@ socket.connect("tcp://localhost:%s" % port)
 
 while True:
     msg = socket.recv()
-    print msg
+    print (msg)
     socket.send("client message to server1")
     socket.send("client message to server2")
     time.sleep(1)

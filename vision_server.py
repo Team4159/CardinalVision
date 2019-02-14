@@ -10,7 +10,7 @@ class VisionServer:
     def __init__(self):
         # looping
         self.last_tick = time.time()
-        self.tick_time = 1 / 60  # same as camera loop but can be tuned
+        self.tick_time = 1 / 60  # same as camera loop but can be tuned differently
 
         # cameras
         self.front_cam = cv2.VideoCapture(2)  # arbitrary

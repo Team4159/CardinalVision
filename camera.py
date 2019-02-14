@@ -1,26 +1,33 @@
 # https://github.com/log0/video_streaming_with_flask_example/blob/master/camera.py
 
 import cv2
-import wpilib
+import zmq
 
 
 class VideoCamera(object):
     def __init__(self):
-        # Using OpenCV to capture from device 0 and 1.
-        self.video0 = cv2.VideoCapture(0)
-        self.video1 = cv2.VideoCapture(1)
+        # Using OpenCV to capture from device 2 and 3.
+        self.video0 = cv2.VideoCapture(2)
+        self.video1 = cv2.VideoCapture(3)
 
-        self.xbox = wpilib.Joystick(1)
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.SUB)
+        self.socket.connect('tcp://*:5555')  # arbitrary
+
+        self.switch = False
+        self.last_value = 0
 
     def __del__(self):
         self.video0.release()
         self.video1.release()
 
-    switch = False
-
     def get_frame(self):
-        if self.xbox.getTriggerPressed():  # change button
+        value = int(self.socket.recv())
+
+        if value and not self.last_value:
             self.switch = not self.switch
+
+        self.last_value = value
 
         if self.switch:
             success, image = self.video1.read()

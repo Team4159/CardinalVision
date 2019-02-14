@@ -22,18 +22,18 @@ class VisionServer:
         # zmq comms
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
-        self.socket.bind('tcp://127.0.0.1:5555')  # arbitrary
+        self.socket.bind('tcp://*:5555')  # arbitrary
 
-    def mainloop(self):
+    def run(self):
         while True:
-            self.run()
+            self.tick()
 
             tmp = time.time()
             if self.tick_time - (time.time() - self.last_tick) > 0:
                 time.sleep(self.tick_time - (time.time() - self.last_tick))
             self.last_tick = tmp
 
-    def run(self):
+    def tick(self):
         _, front_frame = self.front_cam.read()
         _, back_frame = self.back_cam.read()
 
@@ -51,4 +51,4 @@ class VisionServer:
 
 if __name__ == '__main__':
     vision_server = VisionServer()
-    vision_server.mainloop()
+    vision_server.run()

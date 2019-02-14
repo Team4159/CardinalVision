@@ -7,12 +7,13 @@ import zmq
 class VideoCamera(object):
     def __init__(self):
         # Using OpenCV to capture from device 2 and 3.
-        self.video0 = cv2.VideoCapture(2)
-        self.video1 = cv2.VideoCapture(3)
+        self.video0 = cv2.VideoCapture(0)
+        self.video1 = cv2.VideoCapture(1)
 
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.SUB)
-        self.socket.connect('tcp://*:5555')  # arbitrary
+        self.socket.connect('tcp://127.0.0.1:5803')  # arbitrary
+        self.socket.setsockopt(zmq.SUBSCRIBE, b'')
 
         self.switch = False
         self.last_value = 0

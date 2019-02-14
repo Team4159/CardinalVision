@@ -10,11 +10,11 @@ class VisionServer:
     def __init__(self):
         # looping
         self.last_tick = time.time()
-        self.tick_time = 0.1  # arbitrary, tune for with live camera and zmq
+        self.tick_time = 1 / 60  # same as camera loop but can be tuned
 
         # cameras
-        self.front_cam = cv2.VideoCapture(0)  # arbitrary
-        self.back_cam = cv2.VideoCapture(1)  # arbitrary
+        self.front_cam = cv2.VideoCapture(2)  # arbitrary
+        self.back_cam = cv2.VideoCapture(3)  # arbitrary
 
         # self.front_cam.set(3, 320) theoretically you can set the camera properties
         # self.back_cam.set(4, 240)
@@ -22,7 +22,7 @@ class VisionServer:
         # zmq comms
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
-        self.socket.bind('tcp://*:5555')  # arbitrary
+        self.socket.bind('tcp://*:5802')  # arbitrary
 
     def run(self):
         while True:

@@ -3,9 +3,15 @@
 from flask import Flask, render_template, Response
 from camera import VideoCamera
 
+import time
+
 
 class StreamServer(Flask):
     def __init__(self, *args, **kwargs):
+        # looping
+        self.last_tick = time.time()
+        self.tick_time = 1 / 60  # 60 fps
+
         Flask.__init__(self, *args, **kwargs)
 
         @self.route('/')
@@ -17,9 +23,13 @@ class StreamServer(Flask):
             return Response(self.make_stream(VideoCamera()),
                             mimetype='multipart/x-mixed-replace; boundary=frame')
 
-    @staticmethod
-    def make_stream(camera):
+    def make_stream(self, camera):
         while True:
+            tmp = time.time()
+            if self.tick_time - (time.time() - self.last_tick) > 0:
+                time.sleep(self.tick_time - (time.time() - self.last_tick))
+            self.last_tick = tmp
+
             frame = camera.get_frame()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')

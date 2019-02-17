@@ -20,12 +20,9 @@ class StreamServer:
         self.footage_socket.bind('tcp://127.0.0.1:5801')
 
     async def read_control_socket(self):
-        last_value = 0
         while True:
-            value = int(await self.control_socket.recv())
-            if value and not last_value:
-                self.camera ^= 1  # my brain expands every day
-            last_value = value
+            await self.control_socket.recv()
+            self.camera_port ^= 1  # my brain expands every day
 
     async def send_footage(self):
         while True:

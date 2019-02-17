@@ -118,6 +118,6 @@ if __name__ == '__main__':
     # Display the frame
     cv2.imshow('Frame', frame)
 
-    # Exit program if any key is pressed
+    # Exit program if q key is pressed
     if cv2.waitKey(0) & 0xFF == ord('q'):
         cv2.destroyAllWindows()

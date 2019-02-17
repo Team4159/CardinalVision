@@ -7,7 +7,7 @@ This is Team 4159's image recognition code running on the Nvidia Jetson TX1. We 
 
 `5802` - Alignment data from Jetson to RoboRio.
 
-`5803` - Control data from Roborio to Jetson.
+`5803` - Camera control data from Roborio to Jetson.
 
 
 ## Links for Getting it to run on the Jetson TX1

@@ -13,11 +13,12 @@ class StreamServer:
         self.context = zmq.asyncio.Context()
 
         self.control_socket = self.context.socket(zmq.SUB)
-        self.control_socket.connect('tcp://127.0.0.1:5803')
+        self.control_socket.bind('tcp://*:5803')
         self.control_socket.setsockopt(zmq.SUBSCRIBE, b'')
 
         self.footage_socket = self.context.socket(zmq.PUB)
-        self.footage_socket.bind('tcp://127.0.0.1:5801')
+        self.footage_socket.bind('tcp://*:5801')
+        self.footage_socket.setsockopt(zmq.CONFLATE, 1)
 
     async def read_control_socket(self):
         while True:
@@ -28,7 +29,7 @@ class StreamServer:
         while True:
             frame = self.camera.get_frame(self.camera_port)
             await self.footage_socket.send(frame)
-            await asyncio.sleep(0)  # yield control to self.read_control_socket
+            await asyncio.sleep(1 / 15)  # yield control to self.read_control_socket
 
     def run(self):
         loop = asyncio.get_event_loop()

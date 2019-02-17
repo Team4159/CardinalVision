@@ -1,9 +1,16 @@
 # CardinalVision
 This is Team 4159's image recognition code running on the Nvidia Jetson TX1. We use the Playstation Eye camera with an infrared polyester filter and a 850nm IR LED ring around it to detect the retroreflective tape.
 
-## Links for Getting it to run on the Jetson TX1
+## Ports
 
-[Installing OpenCV on the Jetson](https://github.com/jetsonhacks/buildOpenCVTX1/). You can change the versions inside the script to get a different version of OpenCV. This script will also install Python 2.7 and 3.5.
+`5801` - Footage stream from Jetson to DriverStation.
+
+`5802` - Alignment data from Jetson to RoboRio.
+
+`5803` - Control data from Roborio to Jetson.
+
+
+## Links for Getting it to run on the Jetson TX1
 
 _Tips for building OpenCV on the Jetson:_
 

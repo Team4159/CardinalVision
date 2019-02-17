@@ -6,11 +6,9 @@ import struct
 
 
 class VisionServer:
-    def __init__(self):
-        # looping
-        self.last_tick = time.time()
-        self.tick_time = 1 / 60  # same as camera loop but can be tuned differently
+    tick_time = 1 / 60  # same as camera loop but can be tuned differently
 
+    def __init__(self):
         # cameras
         self.front_cam = cv2.VideoCapture(2)  # arbitrary
         self.back_cam = cv2.VideoCapture(3)  # arbitrary
@@ -24,13 +22,15 @@ class VisionServer:
         self.socket.bind('tcp://*:5802')  # arbitrary
 
     def run(self):
+        last_tick = time.time()
+
         while True:
             self.tick()
 
             tmp = time.time()
-            if self.tick_time - (time.time() - self.last_tick) > 0:
-                time.sleep(self.tick_time - (time.time() - self.last_tick))
-            self.last_tick = tmp
+            if VisionServer.tick_time - (time.time() - last_tick) > 0:
+                time.sleep(VisionServer.tick_time - (time.time() - last_tick))
+            last_tick = tmp
 
     def tick(self):
         _, front_frame = self.front_cam.read()

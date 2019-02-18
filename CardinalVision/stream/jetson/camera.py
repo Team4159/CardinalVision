@@ -1,5 +1,3 @@
-# https://github.com/log0/video_streaming_with_flask_example/blob/master/camera.py
-
 import cv2
 
 
@@ -9,11 +7,12 @@ class VideoCamera(object):
         self.video0 = cv2.VideoCapture(0)
         self.video1 = cv2.VideoCapture(1)
 
-    def release(self):
-        self.video0.release()
-        self.video1.release()
-
     def get_frame(self, camera):
+        """Reads a frame from the corresponding camera and color maps it to distinguish it.
+        :param camera: (int) 0 or 1, depending on which camera to read the frame from.
+        :return: jpeg encoded image in a bytestring
+        """
+
         if camera == 0:
             success, image = self.video0.read()
             image = cv2.applyColorMap(image, cv2.COLORMAP_PINK)
@@ -27,4 +26,3 @@ class VideoCamera(object):
         # video stream.
         ret, jpeg = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 25])
         return jpeg.tobytes()
-

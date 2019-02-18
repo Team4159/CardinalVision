@@ -28,27 +28,24 @@ class VisionServer:
         last_tick = time.time()
 
         while True:
-            self.tick()
+            _, front_frame = self.front_cam.read()
+            _, back_frame = self.back_cam.read()
+
+            front_error, _ = Vision.process_image(front_frame)
+            back_error, _ = Vision.process_image(back_frame)
+
+            if front_error is None:
+                front_error = 0  # don't move if no tapes
+
+            if back_error is None:
+                back_error = 0  # don't move if no tapes
+
+            self.socket.send(struct.pack('<2d', front_error, back_error))
 
             tmp = time.time()
             if VisionServer.tick_time - (time.time() - last_tick) > 0:
                 time.sleep(VisionServer.tick_time - (time.time() - last_tick))
             last_tick = tmp
-
-    def tick(self):
-        _, front_frame = self.front_cam.read()
-        _, back_frame = self.back_cam.read()
-
-        front_error, _ = Vision.process_image(front_frame)
-        back_error, _ = Vision.process_image(back_frame)
-
-        if front_error is None:
-            front_error = 0  # don't move if no tapes
-
-        if back_error is None:
-            back_error = 0  # don't move if no tapes
-
-        self.socket.send(struct.pack('<2d', front_error, back_error))
 
 
 if __name__ == '__main__':

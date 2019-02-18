@@ -26,4 +26,3 @@ _Swtiching Between Internet and Static IP for the Radio:_
 
 _Installing Playstation 3 Eye Camera Driver:_
 1) Use [this script](https://github.com/jetsonhacks/installPlayStationEyeTX1). Make sure that the Jetson is running [Linux For Tegra R24.2.1](https://developer.nvidia.com/embedded/linux-tegra-r2421), the driver won't work for any other versions.
-

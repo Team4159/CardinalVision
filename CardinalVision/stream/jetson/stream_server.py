@@ -1,5 +1,3 @@
-# https://github.com/log0/video_streaming_with_flask_example/blob/master/main.py
-
 from CardinalVision.stream.jetson import VideoCamera
 import zmq.asyncio
 import asyncio

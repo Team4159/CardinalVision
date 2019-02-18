@@ -9,6 +9,10 @@ class Vision:
 
     @staticmethod
     def process_image(image):
+        """Identifies all reflective tapes and determines our error from the largest one.
+        :param image: Image to identify tapes on.
+        :return: Error in pixels that the camera has from the tape.
+        """
         rows, cols = image.shape[:2]
 
         # Convert BGR to HSV
@@ -71,53 +75,46 @@ class Vision:
                     # Add combinedRect to the list of boundingBoxes
                     boundingBoxes.append(combinedRect)
 
-                    # Draw the bounding box to the frame
-                    image = cv2.rectangle(image, (combinedRect[0], combinedRect[1]),
-                                          (combinedRect[0] + combinedRect[2], combinedRect[1] + combinedRect[3]),
-                                          (0, 255, 0), 3)
-
         # Loop through each bounding box and compute which has the largest area
         if boundingBoxes:
             largestBoundingBox = max(boundingBoxes, key=lambda rect: rect[2] * rect[3])
             xValueToAlignTo = largestBoundingBox[0] + largestBoundingBox[2] / 2
             error = (xValueToAlignTo - (cols / 2)) / (cols / 2)  # error scaled down to -1 to 1
 
-            return error, image
+            return error
 
         else:
-            return None, image
+            return None
 
     @staticmethod
     def fit_line(cnt):
+        """Finds two points on a line fitted to a contour
+        :param cnt: Contour to fit line to.
+        :return: Two points on the line as a tuple: (x0, y0, x1, y1)
+        """
         vx, vy, x0, y0 = cv2.fitLine(cnt, cv2.DIST_L2, 0, 0.01, 0.01)
         x1, y1 = np.array([x0, y0]) + (100 * np.array([vx, vy]))
         return x0, y0, x1.item(), y1.item()
 
     @staticmethod
-    def sort_left_to_right(cnts):
-        # Takes a list of contours and returns it sorted from left to right
-        boundingBoxes = [cv2.boundingRect(c) for c in cnts]
-        if len(cnts) >= 2:
-            cnts, boundingBoxes = zip(*sorted(zip(cnts, boundingBoxes), key=lambda b: b[1][0], reverse=False))
-        return cnts
+    def sort_left_to_right(contours):
+        """
+        :param contours: Contours to sort.
+        :return: Contours sorted from left to right.
+        """
+        if len(contours) >= 2:
+            contours, _ = zip(*sorted(zip(contours, (cv2.boundingRect(c) for c in contours)), key=lambda b: b[1][0], reverse=False))
+        return contours
 
     @staticmethod
     def union(a, b):
-        # Takes two rectangles as tuples (x, y, w, h) and returns a larger rectangle tuple that encompasses both of them
+        """Creates a larger rectangle containing two smaller ones
+        :param a: First rectangle as a tuple: (x, y, w, h)
+        :param b: Second rectangle as a tuple: (x, y, w, h)
+        :return: Larger rectangle containing both smaller rectangles as a tuple: (x, y, w, h)
+        """
         x = min(a[0], b[0])
         y = min(a[1], b[1])
         w = max(a[0] + a[2], b[0] + b[2]) - x
         h = max(a[1] + a[3], b[1] + b[3]) - y
         return x, y, w, h
-
-
-if __name__ == '__main__':
-    translationValue, frame = Vision.process_image(cv2.imread('test_images/test2.png'))
-    print(translationValue)
-
-    # Display the frame
-    cv2.imshow('Frame', frame)
-
-    # Exit program if q key is pressed
-    if cv2.waitKey(0) & 0xFF == ord('q'):
-        cv2.destroyAllWindows()

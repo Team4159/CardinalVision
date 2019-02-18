@@ -10,11 +10,20 @@ This is Team 4159's image recognition code running on the Nvidia Jetson TX1. We 
 `5803` - Camera control data from Roborio to Jetson.
 
 
-## Links for Getting it to run on the Jetson TX1
+## Help for Setting Up the Jetson TX1
 
-_Tips for building OpenCV on the Jetson:_
+_Building OpenCV on the Jetson:_
+1) Clone [opencv_contrib](https://github.com/opencv/opencv_contrib) (for CUDA support).
+2) Download [this script](https://github.com/jetsonhacks/buildOpenCVTX1), it's usable but you need to make some changes.
+3) Change the OpenCV version in the script to the latest, and add some stuff to the `cmake` options:
+    1) `-D OPENCV_EXTRA_MODULES=../opencv_contrib/modules` to build with extras.
+    2) If low on space, exclude modules that you don't need from the build: http://answers.opencv.org/question/56049/exclude-modules-while-building-opencv/
 
-1) Build with all 4 cores by using `-j4` flag
-2) Exclude modules that you don't need from the build: http://answers.opencv.org/question/56049/exclude-modules-while-building-opencv/
+_Swtiching Between Internet and Static IP for the Radio:_
+1) Open / Create `/etc/network/interfaces.d/eth0` with an editor (`gedit`, `vim`, etc.)
+2) Uncomment the commented lines and comment to uncommented ones.
+3) Restart the network service: `sudo /etc/init.d/networking restart'
 
-[Installing the Driver for the Playstation 3 Eye Camera](https://github.com/jetsonhacks/installPlayStationEyeTX1). Make sure that the Jetson is running [Linux For Tegra R24.2.1](https://developer.nvidia.com/embedded/linux-tegra-r2421), the driver won't work for any other versions.
+_Installing Playstation 3 Eye Camera Driver:_
+1) Use [this script](https://github.com/jetsonhacks/installPlayStationEyeTX1). Make sure that the Jetson is running [Linux For Tegra R24.2.1](https://developer.nvidia.com/embedded/linux-tegra-r2421), the driver won't work for any other versions.
+

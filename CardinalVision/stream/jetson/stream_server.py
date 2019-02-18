@@ -32,6 +32,7 @@ class StreamServer:
             await asyncio.sleep(1 / 15)  # yield control to self.read_control_socket
 
     def run(self):
+        print('Starting Stream Server...')
         loop = asyncio.get_event_loop()
         loop.create_task(self.read_control_socket())
         loop.run_until_complete(self.send_footage())

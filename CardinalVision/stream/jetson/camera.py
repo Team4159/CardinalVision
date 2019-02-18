@@ -16,9 +16,11 @@ class VideoCamera(object):
     def get_frame(self, camera):
         if camera == 0:
             success, image = self.video0.read()
+            image = cv2.applyColorMap(image, cv2.COLORMAP_PINK)
 
         elif camera == 1:
             success, image = self.video1.read()
+            image = cv2.applyColorMap(image, cv2.COLORMAP_BONE)
 
         # We are using Motion JPEG, but OpenCV defaults to capture raw images,
         # so we must encode it into JPEG in order to correctly display the

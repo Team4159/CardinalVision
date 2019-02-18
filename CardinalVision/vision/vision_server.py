@@ -20,8 +20,11 @@ class VisionServer:
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
         self.socket.bind('tcp://*:5802')
+        self.socket.setsockopt(zmq.CONFLATE, 1)
 
     def run(self):
+        print('Starting Vision Server...')
+
         last_tick = time.time()
 
         while True:

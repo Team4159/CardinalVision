@@ -20,9 +20,9 @@ _Building OpenCV on the Jetson:_
     2) If low on space, exclude modules that you don't need from the build: http://answers.opencv.org/question/56049/exclude-modules-while-building-opencv/
 
 _Swtiching Between Internet and Static IP for the Radio:_
-1) Open / Create `/etc/network/interfaces.d/eth0` with an editor (`gedit`, `vim`, etc.)
+1) Open `/etc/network/interfaces.d/eth0` with an editor (`gedit`, `vim`, etc.)
 2) Uncomment the commented lines and comment to uncommented ones.
-3) Restart the network service: `sudo /etc/init.d/networking restart'
+3) Restart the network service: `sudo /etc/init.d/networking restart`
 
 _Installing Playstation 3 Eye Camera Driver:_
 1) Use [this script](https://github.com/jetsonhacks/installPlayStationEyeTX1). Make sure that the Jetson is running [Linux For Tegra R24.2.1](https://developer.nvidia.com/embedded/linux-tegra-r2421), the driver won't work for any other versions.

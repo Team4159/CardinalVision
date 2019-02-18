@@ -19,13 +19,11 @@ class VisionServer:
         # zmq comms
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
-        self.socket.bind('tcp://*:5802')
+        self.socket.bind('tcp://*:5801')
         self.socket.setsockopt(zmq.CONFLATE, 1)
 
     def run(self):
         print('Starting Vision Server...')
-
-        last_tick = time.time()
 
         while True:
             _, front_frame = self.front_cam.read()
@@ -41,11 +39,6 @@ class VisionServer:
                 back_error = 0  # don't move if no tapes
 
             self.socket.send(struct.pack('<2d', front_error, back_error))
-
-            tmp = time.time()
-            if VisionServer.tick_time - (time.time() - last_tick) > 0:
-                time.sleep(VisionServer.tick_time - (time.time() - last_tick))
-            last_tick = tmp
 
 
 if __name__ == '__main__':

@@ -3,11 +3,7 @@ This is Team 4159's image recognition code running on the Nvidia Jetson TX1. We 
 
 ## Ports
 
-`5801` - Footage stream from Jetson to DriverStation.
-
-`5802` - Alignment data from Jetson to RoboRio.
-
-`5803` - Camera control data from Roborio to Jetson.
+`5801` - Alignment data from Jetson to RoboRio.
 
 
 ## Help for Setting Up the Jetson TX1

@@ -5,5 +5,3 @@
 
 
 python3 -m CardinalVision.vision.vision_server &
-
-python3 -m CardinalVision.stream.jetson.stream_server &

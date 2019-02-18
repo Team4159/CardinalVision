@@ -15,6 +15,7 @@ class StreamServer:
         self.control_socket = self.context.socket(zmq.SUB)
         self.control_socket.bind('tcp://*:5803')
         self.control_socket.setsockopt(zmq.SUBSCRIBE, b'')
+        self.control_socket.setsockopt(zmq.CONFLATE, 1)
 
         self.footage_socket = self.context.socket(zmq.PUB)
         self.footage_socket.bind('tcp://*:5801')

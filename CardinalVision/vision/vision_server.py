@@ -6,11 +6,9 @@ import struct
 
 
 class VisionServer:
-    def __init__(self):
-        # looping
-        self.last_tick = time.time()
-        self.tick_time = 1 / 60  # same as camera loop but can be tuned differently
+    tick_time = 1 / 60  # same as camera loop but can be tuned differently
 
+    def __init__(self):
         # cameras
         self.front_cam = cv2.VideoCapture(2)  # arbitrary
         self.back_cam = cv2.VideoCapture(3)  # arbitrary
@@ -21,31 +19,26 @@ class VisionServer:
         # zmq comms
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
-        self.socket.bind('tcp://*:5802')  # arbitrary
+        self.socket.bind('tcp://*:5801')
+        self.socket.setsockopt(zmq.CONFLATE, 1)
 
     def run(self):
+        print('Starting Vision Server...')
+
         while True:
-            self.tick()
+            _, front_frame = self.front_cam.read()
+            _, back_frame = self.back_cam.read()
 
-            tmp = time.time()
-            if self.tick_time - (time.time() - self.last_tick) > 0:
-                time.sleep(self.tick_time - (time.time() - self.last_tick))
-            self.last_tick = tmp
+            front_error, _ = Vision.process_image(front_frame)
+            back_error, _ = Vision.process_image(back_frame)
 
-    def tick(self):
-        _, front_frame = self.front_cam.read()
-        _, back_frame = self.back_cam.read()
+            if front_error is None:
+                front_error = 0  # don't move if no tapes
 
-        front_error, _ = Vision.process_image(front_frame)
-        back_error, _ = Vision.process_image(back_frame)
+            if back_error is None:
+                back_error = 0  # don't move if no tapes
 
-        if front_error is None:
-           front_error = 0  # don't move if no tapes
-
-        if back_error is None:
-            back_error = 0  # don't move if no tapes
-
-        self.socket.send(struct.pack('<2d', front_error, back_error))
+            self.socket.send(struct.pack('<2d', front_error, back_error))
 
 
 if __name__ == '__main__':

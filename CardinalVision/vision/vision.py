@@ -7,6 +7,8 @@ class Vision:
     lower_range = np.array([0.0, 0.0, 255.0])
     upper_range = np.array([0.0, 0.0, 255.0])
 
+    min_area = 500
+
     @staticmethod
     def process_image(image):
         """Identifies all reflective tapes and determines our error from the largest one.
@@ -24,56 +26,38 @@ class Vision:
         # Find contours
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
-        # Sort contours from left to right
-        contours = Vision.sort_left_to_right(contours)
-
         boundingBoxes = []
 
-        # Loop through each contour(tape) with an index
-        for idx, tape in enumerate(contours):
-            # Only loop until second to last contour
-            if idx < len(contours) - 1:
-                # Get the current indexed contour and next index contour in the list
-                leftTape = contours[idx]
-                rightTape = contours[idx + 1]
+        # Loop through each contour(tape) with an index, sorted and filtered
+        for idx, tape in enumerate(Vision.sort_left_to_right(Vision.filter_area(contours[:-1]))):
+            # Get the current indexed contour and next index contour in the list
+            left_tape = contours[idx]
+            right_tape = contours[idx + 1]
 
-                # Get the Moment objects of the two contours
-                leftM = cv2.moments(leftTape)
-                rightM = cv2.moments(rightTape)
+            # Fit each contour to a line and get two points from each line
+            x1, y1, x2, y2 = Vision.fit_line(left_tape)
+            x3, y3, x4, y4 = Vision.fit_line(right_tape)
 
-                # skip if either contour has an area of 0
-                if leftM['m00'] == 0 or rightM['m00'] == 0:
-                    continue
+            left_slope = (y2 - y1) / (x2 - x1)
+            right_slope = (y4 - y3) / (x4 - x3)
 
-                # Calculate the centeroid y coordinates of the two contours
-                leftY = int(leftM['m01'] / leftM['m00'])
-                rightY = int(rightM['m01'] / rightM['m00'])
+            # Compare slopes and run
+            if left_slope < 0 < right_slope:
+                # Bound a rectangle on the two contours and get the (x,y) of the top left coordinate and the rectangle's width and height
+                xL, yL, wL, hL = cv2.boundingRect(left_tape)
+                xR, yR, wR, hR = cv2.boundingRect(right_tape)
 
-                # Fit each contour to a line and get two points from each line
-                x1, y1, x2, y2 = Vision.fit_line(leftTape)
-                x3, y3, x4, y4 = Vision.fit_line(rightTape)
+                # Assign x, y, width, and height to a tuple that represents a rectangle
+                leftRect = (xL, yL, wL, hL)
+                rightRect = (xR, yR, wR, hR)
 
-                # Compute the y coordinate of the intersection point of the two lines
-                intersectY = y1 + ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / (
-                            (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1)) * (y2 - y1)
+                # Combine the two rectangles by computing its union (creating a bounding box around the two pieces of tape)
+                combinedRect = Vision.union(leftRect, rightRect)
 
-                # Run if the intersection of the two lines are higher than the contours (the two pieces of tape are angled towards each other)
-                # TODO: Might be a better idea to compare the slopes of the two lines (positive or negative)
-                # because there are actually some extreme cases where the intersect point is lower than one of the tape's y coordinate even though they are meant to be grouped together
-                if intersectY < rightY or intersectY < leftY:
-                    # Bound a rectangle on the two contours and get the (x,y) of the top left coordinate and the rectangle's width and height
-                    xL, yL, wL, hL = cv2.boundingRect(leftTape)
-                    xR, yR, wR, hR = cv2.boundingRect(rightTape)
+                # Add combinedRect to the list of boundingBoxes
+                boundingBoxes.append(combinedRect)
 
-                    # Assign x, y, width, and height to a tuple that represents a rectangle
-                    leftRect = (xL, yL, wL, hL)
-                    rightRect = (xR, yR, wR, hR)
-
-                    # Combine the two rectangles by computing its union (creating a bounding box around the two pieces of tape)
-                    combinedRect = Vision.union(leftRect, rightRect)
-
-                    # Add combinedRect to the list of boundingBoxes
-                    boundingBoxes.append(combinedRect)
+                contours.pop(idx + 1)
 
         # Loop through each bounding box and compute which has the largest area
         if boundingBoxes:
@@ -83,8 +67,7 @@ class Vision:
 
             return error
 
-        else:
-            return None
+        return None
 
     @staticmethod
     def fit_line(cnt):
@@ -97,14 +80,16 @@ class Vision:
         return x0, y0, x1.item(), y1.item()
 
     @staticmethod
+    def filter_area(contours):
+        return filter(lambda contour: cv2.contourArea(contour) > Vision.min_area, contours)
+
+    @staticmethod
     def sort_left_to_right(contours):
         """
         :param contours: Contours to sort.
         :return: Contours sorted from left to right.
         """
-        if len(contours) >= 2:
-            contours, _ = zip(*sorted(zip(contours, (cv2.boundingRect(c) for c in contours)), key=lambda b: b[1][0], reverse=False))
-        return contours
+        return sorted(contours, key=lambda contour: cv2.boundingRect(contour)[0], reverse=True)
 
     @staticmethod
     def union(a, b):

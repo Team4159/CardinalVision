@@ -15,7 +15,7 @@ class DebugVision:
             if frame is None:
                 break
 
-            frame = Vision.process_image(frame, debug=True)
+            frame = Vision.debug_image(frame)
 
             cv2.imshow('debug', frame)
 

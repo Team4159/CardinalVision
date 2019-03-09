@@ -10,14 +10,50 @@ class Vision:
     min_area = 500
 
     @staticmethod
-    def process_image(image, debug=False):
-        """Identifies all reflective tapes and determines our error from the largest one.
+    def process_image(image):
+        """Identifies all reflective tapes and determines error from the largest one.
         :param image: Image to identify tapes on.
-        :param debug: Whether or not to draw bounding boxes and return bounded image
-        :return: Error in pixels that the camera has from the tape.
+        :return: Error from -1 to 1 that the camera has from the tape.
         """
         rows, cols = image.shape[:2]
 
+        contours = Vision.find_contours(image)
+        bounding_boxes = Vision.group_contours(contours)
+
+        # Loop through each bounding box and compute which has the largest area
+        if bounding_boxes:
+            largest_bounding_box = max(bounding_boxes, key=lambda rect: rect[2] * rect[3])
+            x_value_to_align_to = largest_bounding_box[0] + largest_bounding_box[2] / 2
+            error = (x_value_to_align_to - (cols / 2)) / (cols / 2)  # error scaled down to -1 to 1
+
+            return error
+
+        return 0
+
+    @staticmethod
+    def debug_image(image):
+        """Draws contours and bounding boxes on an image.
+        :param image: Image to identify tapes on.
+        :return: Bounded image.
+        """
+        contours = Vision.find_contours(image)
+        bounding_boxes = Vision.group_contours(contours)
+
+        for bounding_box in bounding_boxes:
+            x, y, w, h = bounding_box
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        for contour in contours:
+            cv2.drawContours(image, [np.int0(cv2.boxPoints(cv2.minAreaRect(contour)))], 0, (0, 0, 255), 2)
+
+        return image
+
+    @staticmethod
+    def find_contours(image):
+        """Finds, filters, and sorts contours from an image.
+        :param image: Image to find contours on.
+        :return: A list of contours.
+        """
         # Convert BGR to HSV
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -27,20 +63,28 @@ class Vision:
         # Find contours
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
+        processed_contours = Vision.sort_left_to_right(Vision.filter_area(contours))
+
+        return processed_contours
+
+    @staticmethod
+    def group_contours(contours):
+        """Groups contours into bounding boxes
+        :param contours: Contours to group.
+        :return: Bounding boxes around the grouped contours.
+        """
         bounding_boxes = []
 
         grouped = []
 
-        processed_contours = Vision.sort_left_to_right(Vision.filter_area(contours))
-
         # Loop through each contour(tape) with an index, sorted and filtered
-        for idx, tape in enumerate(processed_contours[:-1]):
+        for idx, tape in enumerate(contours[:-1]):
             if idx in grouped:
                 continue
 
             # Get the current indexed contour and next index contour in the list
-            left_tape = processed_contours[idx]
-            right_tape = processed_contours[idx + 1]
+            left_tape = contours[idx]
+            right_tape = contours[idx + 1]
 
             left_slope = Vision.slope(left_tape)
             right_slope = Vision.slope(right_tape)
@@ -58,29 +102,13 @@ class Vision:
                 # Combine the two rectangles by computing its union (creating a bounding box around the two pieces of tape)
                 combined_rect = Vision.union(left_rect, right_rect)
 
-                if debug:
-                    x, y, w, h = combined_rect
-                    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
                 # Add combined_rect to the list of bounding_boxes
                 bounding_boxes.append(combined_rect)
 
                 grouped.append(idx)
                 grouped.append(idx + 1)
 
-        if debug:
-            for contour in processed_contours:
-                cv2.drawContours(image, [np.int0(cv2.boxPoints(cv2.minAreaRect(contour)))], 0, (0, 0, 255), 2)
-
-        # Loop through each bounding box and compute which has the largest area
-        if bounding_boxes:
-            largest_bounding_box = max(bounding_boxes, key=lambda rect: rect[2] * rect[3])
-            x_value_to_align_to = largest_bounding_box[0] + largest_bounding_box[2] / 2
-            error = (x_value_to_align_to - (cols / 2)) / (cols / 2)  # error scaled down to -1 to 1
-
-            return error if not debug else image
-
-        return None if not debug else image
+        return bounding_boxes
 
     @staticmethod
     def slope(cnt):
@@ -93,11 +121,15 @@ class Vision:
 
     @staticmethod
     def filter_area(contours):
+        """Filters out contours with an area of less than min_area (pixels squared)
+        :param contours: Contours to filter.
+        :return: Filtered contours.
+        """
         return filter(lambda contour: cv2.contourArea(contour) > Vision.min_area, contours)
 
     @staticmethod
     def sort_left_to_right(contours):
-        """
+        """Sorts contours from left to right.
         :param contours: Contours to sort.
         :return: Contours sorted from left to right.
         """

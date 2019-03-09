@@ -27,9 +27,13 @@ class Vision:
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         bounding_boxes = []
+        grouped = []
 
         # Loop through each contour(tape) with an index, sorted and filtered
         for idx, tape in enumerate(Vision.sort_left_to_right(Vision.filter_area(contours[:-1]))):
+            if idx in grouped:
+                continue
+
             # Get the current indexed contour and next index contour in the list
             left_tape = contours[idx]
             right_tape = contours[idx + 1]
@@ -57,7 +61,8 @@ class Vision:
                 # Add combined_rect to the list of bounding_boxes
                 bounding_boxes.append(combined_rect)
 
-                contours.pop(idx + 1)
+                grouped.append(idx)
+                grouped.append(idx + 1)
 
         # Loop through each bounding box and compute which has the largest area
         if bounding_boxes:

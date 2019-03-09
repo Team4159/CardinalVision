@@ -25,8 +25,15 @@ You can include extra options if needed:
 
 `--name [name]` - The name of the file within the folder.
 
-`--fps [fps]` - The fps of the debugging video
+`--fps [fps]` - The fps of the debugging video. (default 10)
 
+`--camera [camera port]` - If you instead want to run from a webcam, specify the usb port.
+
+Examples:
+
+`python3 -m CardinalVision.vision.debug_vision --fps 60 --camera 1` Stream at 60 fps from webcam in port 1.
+
+`python3 -m CardinalVision.vision.debug_vision --category deepspace_2019 --name another_video.mov` Read from a file you made in `CardinalVision/test/deepspace_2019` called `another_video.mov`.
 
 ## Help for Setting Up the Jetson TX1
 

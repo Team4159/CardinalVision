@@ -22,7 +22,9 @@ Run Debugging Configuration:
 You can include extra options if needed:
 
 `--category [category]` - The folder within `CardinalVision/test` where the debugging video is.
+
 `--name [name]` - The name of the file within the folder.
+
 `--fps [fps]` - The fps of the debugging video
 
 

@@ -1,7 +1,6 @@
 from CardinalVision.vision import Vision
 import cv2
 import zmq
-import time
 import struct
 
 

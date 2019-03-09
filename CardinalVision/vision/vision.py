@@ -26,7 +26,7 @@ class Vision:
         # Find contours
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
-        boundingBoxes = []
+        bounding_boxes = []
 
         # Loop through each contour(tape) with an index, sorted and filtered
         for idx, tape in enumerate(Vision.sort_left_to_right(Vision.filter_area(contours[:-1]))):
@@ -48,22 +48,22 @@ class Vision:
                 xR, yR, wR, hR = cv2.boundingRect(right_tape)
 
                 # Assign x, y, width, and height to a tuple that represents a rectangle
-                leftRect = (xL, yL, wL, hL)
-                rightRect = (xR, yR, wR, hR)
+                left_rect = (xL, yL, wL, hL)
+                right_rect = (xR, yR, wR, hR)
 
                 # Combine the two rectangles by computing its union (creating a bounding box around the two pieces of tape)
-                combinedRect = Vision.union(leftRect, rightRect)
+                combined_rect = Vision.union(left_rect, right_rect)
 
-                # Add combinedRect to the list of boundingBoxes
-                boundingBoxes.append(combinedRect)
+                # Add combined_rect to the list of bounding_boxes
+                bounding_boxes.append(combined_rect)
 
                 contours.pop(idx + 1)
 
         # Loop through each bounding box and compute which has the largest area
-        if boundingBoxes:
-            largestBoundingBox = max(boundingBoxes, key=lambda rect: rect[2] * rect[3])
-            xValueToAlignTo = largestBoundingBox[0] + largestBoundingBox[2] / 2
-            error = (xValueToAlignTo - (cols / 2)) / (cols / 2)  # error scaled down to -1 to 1
+        if bounding_boxes:
+            largest_bounding_box = max(bounding_boxes, key=lambda rect: rect[2] * rect[3])
+            x_value_to_align_to = largest_bounding_box[0] + largest_bounding_box[2] / 2
+            error = (x_value_to_align_to - (cols / 2)) / (cols / 2)  # error scaled down to -1 to 1
 
             return error
 

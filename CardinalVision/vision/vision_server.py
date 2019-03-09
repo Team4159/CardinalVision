@@ -8,10 +8,11 @@ class VisionServer:
     tick_time = 1 / 60  # same as camera loop but can be tuned differently
 
     def __init__(self):
+        print('Starting Vision Server...')
+
         # cameras
         self.front_cam = cv2.VideoCapture(2)  # arbitrary
         self.back_cam = cv2.VideoCapture(3)  # arbitrary
-
         # self.front_cam.set(3, 320) theoretically you can set the camera properties
         # self.back_cam.set(4, 240)
 
@@ -22,8 +23,6 @@ class VisionServer:
         self.socket.setsockopt(zmq.CONFLATE, 1)
 
     def run(self):
-        print('Starting Vision Server...')
-
         while True:
             _, front_frame = self.front_cam.read()
             _, back_frame = self.back_cam.read()

@@ -5,8 +5,6 @@ import struct
 
 
 class VisionServer:
-    tick_time = 1 / 60  # same as camera loop but can be tuned differently
-
     def __init__(self):
         print('Starting Vision Server...')
 
@@ -27,8 +25,8 @@ class VisionServer:
             _, front_frame = self.front_cam.read()
             _, back_frame = self.back_cam.read()
 
-            front_error = Vision.process_image(front_frame)
-            back_error = Vision.process_image(back_frame)
+            front_error = Vision.process_image(front_frame) if front_frame else 0
+            back_error = Vision.process_image(back_frame) if back_frame else 0
 
             self.socket.send(struct.pack('<2d', front_error, back_error))
 

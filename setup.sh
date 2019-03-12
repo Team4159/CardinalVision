@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-pip3 install .
+python3 setup.py install
 sudo cp CardinalVision.service /etc/systemd/system/

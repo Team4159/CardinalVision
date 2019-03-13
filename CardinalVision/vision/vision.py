@@ -7,7 +7,7 @@ class Vision:
     lower_range = np.array([0.0, 0.0, 255.0])
     upper_range = np.array([0.0, 0.0, 255.0])
 
-    min_area = 500
+    min_area = 100
 
     @staticmethod
     def process_image(image):

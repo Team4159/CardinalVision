@@ -29,7 +29,7 @@ class Vision:
 
             return error, area
 
-        return 0
+        return 0, 0
 
     @staticmethod
     def debug_image(image):

@@ -25,10 +25,10 @@ class VisionServer:
             _, front_frame = self.front_cam.read()
             # _, back_frame = self.back_cam.read()
 
-            front_error = Vision.process_image(front_frame) if front_frame is not None else 0
+            front_error, front_area = Vision.process_image(front_frame) if front_frame is not None else 0
             # back_error = Vision.process_image(back_frame) if back_frame is not None else 0
 
-            self.socket.send(struct.pack('<2d', front_error, back_error))
+            self.socket.send(struct.pack('<4d', front_error, front_area, 0, 0))
 
 
 if __name__ == '__main__':

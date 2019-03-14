@@ -25,8 +25,9 @@ class Vision:
             largest_bounding_box = max(bounding_boxes, key=lambda rect: rect[2] * rect[3])
             x_value_to_align_to = largest_bounding_box[0] + largest_bounding_box[2] / 2
             error = (x_value_to_align_to - (cols / 2)) / (cols / 2)  # error scaled down to -1 to 1
+            area = largest_bounding_box[2] * largest_bounding_box[3]
 
-            return error
+            return error, area
 
         return 0
 

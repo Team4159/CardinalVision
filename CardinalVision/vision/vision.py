@@ -4,10 +4,10 @@ import numpy as np
 
 class Vision:
     # Define range of threshold in HSV. Tip: Get these values from generated GRIP code.
-    lower_range = np.array([0.0, 0.0, 255.0])
+    lower_range = np.array([0.0, 0.0, 171.0])
     upper_range = np.array([0.0, 0.0, 255.0])
 
-    min_area = 100
+    min_area = 0
 
     @staticmethod
     def process_image(image):

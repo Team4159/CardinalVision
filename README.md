@@ -29,11 +29,15 @@ You can include extra options if needed:
 
 `--camera [camera port]` - If you instead want to run from a webcam, specify the usb port.
 
+`--file [filename]` - File that you want to process.
+
 Examples:
 
 `python3 -m CardinalVision.vision.debug_vision --fps 60 --camera 1` Stream at 60 fps from webcam in port 1.
 
 `python3 -m CardinalVision.vision.debug_vision --category deepspace_2019 --name another_video.mov` Read from a file you made in `CardinalVision/test/deepspace_2019` called `another_video.mov`.
+
+`python3 -m CardinalVision.vision.debug_vision --file frame.png` Process a file called `frame.png`, useful for debugging edge cases.
 
 ## Help for Setting Up the Jetson TX1
 

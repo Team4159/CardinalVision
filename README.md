@@ -1,10 +1,43 @@
 # CardinalVision
 This is Team 4159's image recognition code running on the Nvidia Jetson TX1. We use the Playstation Eye camera with an infrared polyester filter and a 850nm IR LED ring around it to detect the retroreflective tape.
 
-## Ports
+## How to Setup / Develop
 
-`5801` - Alignment data from Jetson to RoboRio.
+Prerequisites:
 
+`python3`
+
+Clone this repository:
+
+`git clone https://github.com/Team4159/CardinalVision.git`
+
+Install CardinalVision and dependencies:
+
+`python3 setup.py develop`
+
+Run Debugging Configuration:
+
+`python3 -m CardinalVision.vision.debug_vision`
+
+You can include extra options if needed:
+
+`--category [category]` - The folder within `CardinalVision/test` where the debugging video is.
+
+`--name [name]` - The name of the file within the folder.
+
+`--fps [fps]` - The fps of the debugging video. (default 10)
+
+`--camera [camera port]` - If you instead want to run from a webcam, specify the usb port.
+
+`--file [filename]` - File that you want to process.
+
+Examples:
+
+`python3 -m CardinalVision.vision.debug_vision --fps 60 --camera 1` Stream at 60 fps from webcam in port 1.
+
+`python3 -m CardinalVision.vision.debug_vision --category deepspace_2019 --name another_video.mov` Read from a file you made in `CardinalVision/test/deepspace_2019` called `another_video.mov`.
+
+`python3 -m CardinalVision.vision.debug_vision --file frame.png` Process a file called `frame.png`, useful for debugging edge cases.
 
 ## Help for Setting Up the Jetson TX1
 

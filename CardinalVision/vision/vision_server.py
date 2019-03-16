@@ -1,18 +1,16 @@
 from CardinalVision.vision import Vision
 import cv2
 import zmq
-import time
 import struct
 
 
 class VisionServer:
-    tick_time = 1 / 60  # same as camera loop but can be tuned differently
-
     def __init__(self):
-        # cameras
-        self.front_cam = cv2.VideoCapture(2)  # arbitrary
-        self.back_cam = cv2.VideoCapture(3)  # arbitrary
+        print('Starting Vision Server...')
 
+        # cameras
+        self.front_cam = cv2.VideoCapture(0)
+        # self.back_cam = cv2.VideoCapture(1)
         # self.front_cam.set(3, 320) theoretically you can set the camera properties
         # self.back_cam.set(4, 240)
 
@@ -23,22 +21,14 @@ class VisionServer:
         self.socket.setsockopt(zmq.CONFLATE, 1)
 
     def run(self):
-        print('Starting Vision Server...')
-
         while True:
             _, front_frame = self.front_cam.read()
-            _, back_frame = self.back_cam.read()
+            # _, back_frame = self.back_cam.read()
 
-            front_error, _ = Vision.process_image(front_frame)
-            back_error, _ = Vision.process_image(back_frame)
-
-            if front_error is None:
-                front_error = 0  # don't move if no tapes
-
-            if back_error is None:
-                back_error = 0  # don't move if no tapes
-
-            self.socket.send(struct.pack('<2d', front_error, back_error))
+            front_error, front_area = Vision.process_image(front_frame) if front_frame is not None else (0, 0)
+            # back_error = Vision.process_image(back_frame) if back_frame is not None else 0
+            print(front_error, front_area)
+            self.socket.send(struct.pack('<4d', front_error, front_area, 0, 0))
 
 
 if __name__ == '__main__':
